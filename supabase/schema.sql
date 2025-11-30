@@ -9,6 +9,15 @@ create table profiles (
   active_sound text default 'sound-chime',
   active_effect text default 'fx-confetti',
   active_title text,
+  timer_start_time timestamp with time zone,
+  timer_duration integer, -- remaining seconds when paused or total duration when active
+  timer_mode text default 'focus',
+  timer_is_active boolean default false,
+  timer_focus_duration integer default 25,
+  timer_break_duration integer default 5,
+  timer_long_break_duration integer default 15,
+  timer_session_plan jsonb default '[]'::jsonb,
+  timer_session_index integer default 0,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -78,6 +87,10 @@ create table profiles (
   active_sound text default 'sound-chime',
   active_effect text default 'fx-confetti',
   active_title text,
+  timer_start_time timestamp with time zone,
+  timer_duration integer,
+  timer_mode text default 'focus',
+  timer_is_active boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -110,6 +123,7 @@ create table inventory (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references auth.users on delete cascade not null,
   item_id text not null,
+  quantity integer default 1,
   acquired_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unique(user_id, item_id)
 );
@@ -178,6 +192,10 @@ create policy "Users can delete own journal entries"
   on journal_entries for delete
   using ( auth.uid() = user_id );
 
+create policy "Users can update own journal entries"
+  on journal_entries for update
+  using ( auth.uid() = user_id );
+
 -- Function to handle new user creation
 create or replace function public.handle_new_user()
 returns trigger as $$
@@ -192,3 +210,48 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- Goals Table
+create table goals (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users not null,
+  title text not null,
+  description text,
+  start_date timestamp with time zone not null,
+  end_date timestamp with time zone not null,
+  difficulty text not null, -- 'easy', 'medium', 'hard'
+  wager_amount integer default 0,
+  status text default 'active', -- 'active', 'completed', 'failed'
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Goal Milestones Table
+create table goal_milestones (
+  id uuid default uuid_generate_v4() primary key,
+  goal_id uuid references goals on delete cascade not null,
+  title text not null,
+  is_completed boolean default false,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- RLS for Goals
+alter table goals enable row level security;
+alter table goal_milestones enable row level security;
+
+create policy "Users can view own goals" on goals for select using (auth.uid() = user_id);
+create policy "Users can insert own goals" on goals for insert with check (auth.uid() = user_id);
+create policy "Users can update own goals" on goals for update using (auth.uid() = user_id);
+create policy "Users can delete own goals" on goals for delete using (auth.uid() = user_id);
+
+create policy "Users can view own milestones" on goal_milestones for select using (
+  exists (select 1 from goals where goals.id = goal_milestones.goal_id and goals.user_id = auth.uid())
+);
+create policy "Users can insert own milestones" on goal_milestones for insert with check (
+  exists (select 1 from goals where goals.id = goal_milestones.goal_id and goals.user_id = auth.uid())
+);
+create policy "Users can update own milestones" on goal_milestones for update using (
+  exists (select 1 from goals where goals.id = goal_milestones.goal_id and goals.user_id = auth.uid())
+);
+create policy "Users can delete own milestones" on goal_milestones for delete using (
+  exists (select 1 from goals where goals.id = goal_milestones.goal_id and goals.user_id = auth.uid())
+);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useUserStore } from '@/lib/store/useUserStore';
 import { REWARDS } from '@/lib/data/rewards';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,12 +9,22 @@ import confetti from 'canvas-confetti';
 import { soundManager } from '@/lib/sound';
 
 export function LevelUpModal() {
-    const { level } = useUserStore();
+    const { level, isInitialized } = useUserStore();
     const [prevLevel, setPrevLevel] = useState(level);
     const [isOpen, setIsOpen] = useState(false);
     const [showUnlock, setShowUnlock] = useState(false);
 
+    const isFirstSync = useRef(true);
+
     useEffect(() => {
+        if (!isInitialized) return;
+
+        if (isFirstSync.current) {
+            setPrevLevel(level);
+            isFirstSync.current = false;
+            return;
+        }
+
         if (level > prevLevel) {
             setIsOpen(true);
             soundManager.playComplete(); // Play a sound
@@ -33,7 +43,7 @@ export function LevelUpModal() {
             }, 1000);
         }
         setPrevLevel(level);
-    }, [level, prevLevel]);
+    }, [level, isInitialized]);
 
     const unlockedItems = REWARDS.filter(r => r.unlockLevel === level);
 

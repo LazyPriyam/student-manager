@@ -38,7 +38,7 @@ export function Timer() {
             interval = setInterval(() => {
                 setTimeLeft(timeLeft - 1);
             }, 1000);
-        } else if (timeLeft === 0 && isActive) {
+        } else if (timeLeft <= 0 && isActive) {
             setIsActive(false);
             // Timer finished!
             soundManager.playComplete(activeSound);

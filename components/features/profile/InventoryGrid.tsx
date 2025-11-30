@@ -22,7 +22,7 @@ export function InventoryGrid() {
 
     // Filter items: Must be of the active tab type AND be in inventory (or free AND unlocked)
     const ownedItems = items.filter(item =>
-        item.type === activeTab && (inventory.includes(item.id) || (item.cost === 0 && level >= item.unlockLevel))
+        item.type === activeTab && (inventory.some(i => i.itemId === item.id) || (item.cost === 0 && level >= item.unlockLevel))
     );
 
     const handleEquip = (item: Reward) => {

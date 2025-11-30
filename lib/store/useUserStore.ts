@@ -12,6 +12,7 @@ interface UserState {
     activeSound: string;
     activeEffect: string;
     activeTitle: string;
+    isInitialized: boolean;
 
     addXp: (amount: number) => void;
     addPoints: (amount: number) => void;
@@ -36,10 +37,14 @@ export const useUserStore = create<UserState>((set) => ({
     activeSound: 'sound-chime',
     activeEffect: 'fx-confetti',
     activeTitle: 'title-novice',
+    isInitialized: false,
 
     syncWithSupabase: async () => {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+            set({ isInitialized: true });
+            return;
+        }
 
         const { data: profile } = await supabase
             .from('profiles')
@@ -56,7 +61,10 @@ export const useUserStore = create<UserState>((set) => ({
                 activeSound: profile.active_sound,
                 activeEffect: profile.active_effect,
                 activeTitle: profile.active_title,
+                isInitialized: true
             });
+        } else {
+            set({ isInitialized: true });
         }
     },
 

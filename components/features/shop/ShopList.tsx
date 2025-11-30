@@ -75,7 +75,7 @@ export function ShopList() {
                     {filteredItems.map(item => {
                         const isMystery = item.unlockLevel > level + 1;
                         const isLocked = item.unlockLevel > level;
-                        const isOwned = inventory.includes(item.id) || (item.cost === 0 && !isLocked);
+                        const isOwned = inventory.some(i => i.itemId === item.id) || (item.cost === 0 && !isLocked);
                         const canAfford = points >= item.cost;
                         const equipped = isEquipped(item);
 

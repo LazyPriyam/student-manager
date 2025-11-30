@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingBag, User, LogIn, LogOut, BookOpen, Menu, X } from 'lucide-react';
+import { ShoppingBag, User, LogIn, LogOut, BookOpen, Menu, X, Target } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -57,6 +57,13 @@ export function Header() {
                 <Button variant="ghost" size="sm" className={`w-full justify-start md:justify-center ${pathname === '/journal' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}>
                     <BookOpen className="w-4 h-4 mr-2 text-blue-500" />
                     Journal
+                </Button>
+            </Link>
+
+            <Link href="/goals" className="w-full md:w-auto">
+                <Button variant="ghost" size="sm" className={`w-full justify-start md:justify-center ${pathname === '/goals' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}>
+                    <Target className="w-4 h-4 mr-2 text-red-500" />
+                    Goals
                 </Button>
             </Link>
 

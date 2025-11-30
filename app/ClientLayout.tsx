@@ -9,6 +9,8 @@ import { useUserStore } from '@/lib/store/useUserStore';
 import { useTaskStore } from '@/lib/store/useTaskStore';
 import { useShopStore } from '@/lib/store/useShopStore';
 import { useJournalStore } from '@/lib/store/useJournalStore';
+import { useGoalStore } from '@/lib/store/useGoalStore';
+import { useTimerStore } from '@/lib/store/useTimerStore';
 import { useEffect } from 'react';
 import { Header } from "@/components/layout/Header";
 import { supabase } from "@/lib/supabase/client";
@@ -32,7 +34,10 @@ export default function ClientLayout({
                     useHabitStore.getState().fetchHabits(),
                     useTaskStore.getState().fetchTasks(),
                     useShopStore.getState().fetchInventory(),
-                    useJournalStore.getState().fetchEntries()
+                    useShopStore.getState().fetchInventory(),
+                    useJournalStore.getState().fetchEntries(),
+                    useGoalStore.getState().fetchGoals(),
+                    useTimerStore.getState().syncWithSupabase()
                 ]);
             }
         };
