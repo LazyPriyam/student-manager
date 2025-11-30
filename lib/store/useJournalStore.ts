@@ -16,6 +16,7 @@ export interface JournalEntry {
 interface JournalState {
     entries: JournalEntry[];
     addEntry: (title: string, content: string, mood: Mood) => Promise<void>;
+    updateEntry: (id: string, title: string, content: string, mood: Mood) => Promise<void>;
     deleteEntry: (id: string) => Promise<void>;
     fetchEntries: () => Promise<void>;
     resetData: () => Promise<void>;
@@ -93,6 +94,23 @@ export const useJournalStore = create<JournalState>((set, get) => ({
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
             await supabase.from('journal_entries').delete().eq('user_id', user.id);
+        }
+    },
+
+    updateEntry: async (id, title, content, mood) => {
+        set((state) => ({
+            entries: state.entries.map(e =>
+                e.id === id ? { ...e, title, content, mood } : e
+            )
+        }));
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase.from('journal_entries').update({
+                title,
+                content,
+                mood
+            }).eq('id', id);
         }
     },
 }));

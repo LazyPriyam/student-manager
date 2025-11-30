@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useJournalStore, Mood } from '@/lib/store/useJournalStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Smile, Meh, Frown, AlertCircle, Zap, Trash2, Calendar } from 'lucide-react';
+import { Smile, Meh, Frown, AlertCircle, Zap, Trash2, Calendar, Pencil } from 'lucide-react';
 
 const MOODS: { type: Mood; icon: any; label: string; color: string }[] = [
     { type: 'happy', icon: Smile, label: 'Happy', color: 'text-green-500 bg-green-100 dark:bg-green-900/20' },
@@ -14,16 +14,37 @@ const MOODS: { type: Mood; icon: any; label: string; color: string }[] = [
 ];
 
 export default function JournalPage() {
-    const { entries, addEntry, deleteEntry } = useJournalStore();
+    const { entries, addEntry, updateEntry, deleteEntry } = useJournalStore();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [selectedMood, setSelectedMood] = useState<Mood>('neutral');
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim() || !content.trim()) return;
 
-        await addEntry(title, content, selectedMood);
+        if (editingId) {
+            await updateEntry(editingId, title, content, selectedMood);
+            setEditingId(null);
+        } else {
+            await addEntry(title, content, selectedMood);
+        }
+
+        setTitle('');
+        setContent('');
+        setSelectedMood('neutral');
+    };
+
+    const handleEdit = (entry: any) => {
+        setEditingId(entry.id);
+        setTitle(entry.title);
+        setContent(entry.content);
+        setSelectedMood(entry.mood);
+    };
+
+    const cancelEdit = () => {
+        setEditingId(null);
         setTitle('');
         setContent('');
         setSelectedMood('neutral');
@@ -41,7 +62,9 @@ export default function JournalPage() {
                     {/* Entry Form */}
                     <div className="lg:col-span-1">
                         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sticky top-8">
-                            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">New Entry</h2>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
+                                {editingId ? 'Edit Entry' : 'New Entry'}
+                            </h2>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Title</label>
@@ -86,12 +109,23 @@ export default function JournalPage() {
                                     />
                                 </div>
 
-                                <button
-                                    type="submit"
-                                    className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
-                                >
-                                    Save Entry
-                                </button>
+                                <div className="flex gap-2">
+                                    {editingId && (
+                                        <button
+                                            type="button"
+                                            onClick={cancelEdit}
+                                            className="flex-1 py-2 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-lg transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                    <button
+                                        type="submit"
+                                        className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+                                    >
+                                        {editingId ? 'Update Entry' : 'Save Entry'}
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -124,12 +158,22 @@ export default function JournalPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => deleteEntry(entry.id)}
-                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <button
+                                                        onClick={() => handleEdit(entry)}
+                                                        className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                                                        title="Edit"
+                                                    >
+                                                        <Pencil size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => deleteEntry(entry.id)}
+                                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
                                             <p className="text-slate-600 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">
                                                 {entry.content}
