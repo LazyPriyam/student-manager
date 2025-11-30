@@ -7,13 +7,14 @@ export interface Task {
     id: string;
     title: string;
     quadrant: Quadrant;
+    dueDate?: string;
 }
 
 interface TaskState {
     tasks: Task[];
-    addTask: (title: string, quadrant: Quadrant) => void;
-    moveTask: (id: string, toQuadrant: Quadrant) => void;
-    deleteTask: (id: string) => void;
+    addTask: (title: string, quadrant: Quadrant) => Promise<void>;
+    moveTask: (id: string, toQuadrant: Quadrant) => Promise<void>;
+    deleteTask: (id: string) => Promise<void>;
     fetchTasks: () => Promise<void>;
     resetData: () => Promise<void>;
 }
@@ -33,18 +34,49 @@ export const useTaskStore = create<TaskState>((set, get) => ({
             .eq('user_id', user.id);
 
         if (tasks) {
+            const now = new Date().toISOString();
+            const tasksToDelete: string[] = [];
+
+            const validTasks = tasks.filter(t => {
+                // Check if task is in Q4 (Delete) and expired
+                const isQ4 = t.priority === 'q4';
+                const isExpired = t.due_date && t.due_date < now;
+
+                if (isQ4 && isExpired) {
+                    tasksToDelete.push(t.id);
+                    return false;
+                }
+                return true;
+            });
+
+            // Async delete expired tasks
+            if (tasksToDelete.length > 0) {
+                await supabase.from('tasks').delete().in('id', tasksToDelete);
+            }
+
             set({
-                tasks: tasks.map(t => ({
+                tasks: validTasks.map(t => ({
                     id: t.id,
                     title: t.title,
-                    quadrant: (t.priority === 'q1' ? 1 : t.priority === 'q2' ? 2 : t.priority === 'q3' ? 3 : 4) as Quadrant
+                    quadrant: (t.priority === 'q1' ? 1 : t.priority === 'q2' ? 2 : t.priority === 'q3' ? 3 : 4) as Quadrant,
+                    dueDate: t.due_date
                 }))
             });
         }
     },
 
     addTask: async (title, quadrant) => {
-        const newTask = { id: uuidv4(), title, quadrant };
+        const dueDate = quadrant === 4
+            ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+            : null;
+
+        const newTask: Task = {
+            id: uuidv4(),
+            title,
+            quadrant,
+            dueDate: dueDate || undefined
+        };
+
         set((state) => ({ tasks: [...state.tasks, newTask] }));
 
         const { data: { user } } = await supabase.auth.getUser();
@@ -53,19 +85,27 @@ export const useTaskStore = create<TaskState>((set, get) => ({
                 id: newTask.id,
                 user_id: user.id,
                 title,
-                priority: `q${quadrant}`
+                priority: `q${quadrant}`,
+                due_date: dueDate
             });
         }
     },
 
     moveTask: async (id, toQuadrant) => {
+        const dueDate = toQuadrant === 4
+            ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+            : null;
+
         set((state) => ({
-            tasks: state.tasks.map(t => t.id === id ? { ...t, quadrant: toQuadrant } : t)
+            tasks: state.tasks.map(t => t.id === id ? { ...t, quadrant: toQuadrant, dueDate: dueDate || undefined } : t)
         }));
 
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-            await supabase.from('tasks').update({ priority: `q${toQuadrant}` }).eq('id', id);
+            await supabase.from('tasks').update({
+                priority: `q${toQuadrant}`,
+                due_date: dueDate
+            }).eq('id', id);
         }
     },
 
