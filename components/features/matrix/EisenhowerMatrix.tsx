@@ -112,7 +112,7 @@ export function EisenhowerMatrix() {
                 </form>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-6xl h-[800px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-6xl h-auto md:h-[800px]">
                 <Quadrant
                     id={1}
                     title="Do First"

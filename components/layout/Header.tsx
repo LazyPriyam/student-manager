@@ -2,15 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingBag, User, LogIn, LogOut, BookOpen } from 'lucide-react';
+import { ShoppingBag, User, LogIn, LogOut, BookOpen, Menu, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export function Header() {
     const pathname = usePathname();
     const router = useRouter();
     const [user, setUser] = useState<any>(null);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         // Check active session
@@ -29,6 +31,11 @@ export function Header() {
         return () => subscription.unsubscribe();
     }, []);
 
+    // Close mobile menu when route changes
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [pathname]);
+
     const handleLogout = async () => {
         await supabase.auth.signOut();
         router.refresh();
@@ -36,6 +43,46 @@ export function Header() {
 
     // Don't show header on login/signup pages
     if (pathname === '/login' || pathname === '/signup') return null;
+
+    const NavItems = () => (
+        <>
+            <Link href="/shop" className="w-full md:w-auto">
+                <Button variant="ghost" size="sm" className={`w-full justify-start md:justify-center ${pathname === '/shop' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}>
+                    <ShoppingBag className="w-4 h-4 mr-2 text-amber-600" />
+                    Shop
+                </Button>
+            </Link>
+
+            <Link href="/journal" className="w-full md:w-auto">
+                <Button variant="ghost" size="sm" className={`w-full justify-start md:justify-center ${pathname === '/journal' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}>
+                    <BookOpen className="w-4 h-4 mr-2 text-blue-500" />
+                    Journal
+                </Button>
+            </Link>
+
+            {user ? (
+                <>
+                    <Link href="/profile" className="w-full md:w-auto">
+                        <Button variant="ghost" size="sm" className={`w-full justify-start md:justify-center ${pathname === '/profile' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}>
+                            <User className="w-4 h-4 mr-2" />
+                            Profile
+                        </Button>
+                    </Link>
+                    <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full justify-start md:justify-center">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Logout
+                    </Button>
+                </>
+            ) : (
+                <Link href="/login" className="w-full md:w-auto">
+                    <Button variant="default" size="sm" className="w-full justify-start md:justify-center">
+                        <LogIn className="w-4 h-4 mr-2" />
+                        Login
+                    </Button>
+                </Link>
+            )}
+        </>
+    );
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm">
@@ -47,44 +94,35 @@ export function Header() {
                     <span className="font-bold text-slate-900 dark:text-white hidden sm:inline-block">Student Manager</span>
                 </Link>
 
-                <nav className="flex items-center gap-2">
-                    <Link href="/shop">
-                        <Button variant="ghost" size="sm" className={pathname === '/shop' ? 'bg-slate-100 dark:bg-slate-800' : ''}>
-                            <ShoppingBag className="w-4 h-4 mr-2 text-amber-600" />
-                            Shop
-                        </Button>
-                    </Link>
-
-                    <Link href="/journal">
-                        <Button variant="ghost" size="sm" className={pathname === '/journal' ? 'bg-slate-100 dark:bg-slate-800' : ''}>
-                            <BookOpen className="w-4 h-4 mr-2 text-blue-500" />
-                            Journal
-                        </Button>
-                    </Link>
-
-                    {user ? (
-                        <>
-                            <Link href="/profile">
-                                <Button variant="ghost" size="sm" className={pathname === '/profile' ? 'bg-slate-100 dark:bg-slate-800' : ''}>
-                                    <User className="w-4 h-4 mr-2" />
-                                    Profile
-                                </Button>
-                            </Link>
-                            <Button variant="ghost" size="sm" onClick={handleLogout}>
-                                <LogOut className="w-4 h-4 mr-2" />
-                                Logout
-                            </Button>
-                        </>
-                    ) : (
-                        <Link href="/login">
-                            <Button variant="default" size="sm">
-                                <LogIn className="w-4 h-4 mr-2" />
-                                Login
-                            </Button>
-                        </Link>
-                    )}
+                {/* Desktop Nav */}
+                <nav className="hidden md:flex items-center gap-2">
+                    <NavItems />
                 </nav>
+
+                {/* Mobile Menu Toggle */}
+                <button
+                    className="md:hidden p-2 text-slate-600 dark:text-slate-300"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                >
+                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
             </div>
+
+            {/* Mobile Nav Dropdown */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden"
+                    >
+                        <nav className="flex flex-col p-4 gap-2">
+                            <NavItems />
+                        </nav>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </header>
     );
 }

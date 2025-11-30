@@ -10,7 +10,7 @@ export default function MatrixPage() {
     const { xp, level } = useUserStore();
 
     return (
-        <main className="min-h-screen flex flex-col p-8 bg-slate-50 dark:bg-slate-950">
+        <main className="min-h-screen flex flex-col p-4 md:p-8 bg-slate-50 dark:bg-slate-950">
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                     <Link href="/">

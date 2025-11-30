@@ -8,7 +8,7 @@ import { ShoppingBag, LayoutGrid, CheckSquare, User } from 'lucide-react';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 p-8 pb-24 font-[family-name:var(--font-geist-sans)]">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8 pb-24 font-[family-name:var(--font-geist-sans)]">
       <div className="max-w-5xl mx-auto space-y-12">
 
         {/* Header Section */}
