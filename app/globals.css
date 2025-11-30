@@ -5,18 +5,78 @@
   --foreground: #171717;
 }
 
+/* Default Dark (theme-dark) */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+/* Ocean Blue */
+[data-theme='theme-ocean'] {
+  --background: #0f172a; /* Slate 900 */
+  --foreground: #e2e8f0; /* Slate 200 */
+  /* We can override other tailwind vars if we set them up, 
+     but for now we rely on global bg colors. 
+     To make this effective, we need to ensure our components use 
+     bg-background and text-foreground or similar variables, 
+     OR we override specific utility classes. 
+     
+     For this prototype, let's use a global background override.
+  */
+}
+body[data-theme='theme-ocean'] {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+/* Forest Green */
+body[data-theme='theme-forest'] {
+    background-color: #052e16; /* Green 950 */
+    color: #dcfce7; /* Green 100 */
+}
+
+/* Sunset Orange */
+body[data-theme='theme-sunset'] {
+    background-color: #431407; /* Orange 950 */
+    color: #ffedd5; /* Orange 100 */
+}
+
+/* Cyberpunk Neon */
+body[data-theme='theme-cyberpunk'] {
+    background-color: #09090b; /* Zinc 950 */
+    color: #00ff9d; /* Neon Green */
+    border-color: #ff00ff; /* Neon Pink */
+}
+/* Add a glow effect to containers in cyberpunk */
+[data-theme='theme-cyberpunk'] .bg-white, 
+[data-theme='theme-cyberpunk'] .dark\:bg-slate-900 {
+    border: 1px solid #ff00ff;
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+}
+
+/* Sepia */
+body[data-theme='theme-sepia'] {
+    background-color: #f5f5dc;
+    color: #4a3b2a;
+}
+[data-theme='theme-sepia'] .dark\:bg-slate-900 {
+    background-color: #e8dcc5;
+    color: #4a3b2a;
+    border-color: #d1c4a9;
+}
+
+/* Matrix */
+body[data-theme='theme-matrix'] {
+    background-color: #000000;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
