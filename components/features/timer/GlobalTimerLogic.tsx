@@ -102,7 +102,7 @@ export function GlobalTimerLogic() {
 
                     const secondsPassed = Math.round(delta);
                     if (secondsPassed > 0) {
-                        setTimeLeft(timeLeft - secondsPassed);
+                        setTimeLeft(Math.max(0, timeLeft - secondsPassed));
                         lastTick = now;
                     }
                 }
