@@ -255,3 +255,19 @@ create policy "Users can update own milestones" on goal_milestones for update us
 create policy "Users can delete own milestones" on goal_milestones for delete using (
   exists (select 1 from goals where goals.id = goal_milestones.goal_id and goals.user_id = auth.uid())
 );
+
+-- Active Items Table (for Coupons/Powerups with duration)
+create table active_items (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users not null,
+  item_id text not null,
+  expires_at timestamp with time zone not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- RLS for Active Items
+alter table active_items enable row level security;
+
+create policy "Users can view own active items" on active_items for select using (auth.uid() = user_id);
+create policy "Users can insert own active items" on active_items for insert with check (auth.uid() = user_id);
+create policy "Users can delete own active items" on active_items for delete using (auth.uid() = user_id);

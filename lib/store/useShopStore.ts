@@ -1,40 +1,76 @@
 import { create } from 'zustand';
-import { REWARDS, Reward } from '@/lib/data/rewards';
+import { supabase } from '@/lib/supabase/client';
 import { useUserStore } from './useUserStore';
+
+import { REWARDS, Reward } from '@/lib/data/rewards';
+
+interface InventoryItem {
+    itemId: string;
+    quantity: number;
+}
+
+interface ActiveItem {
+    itemId: string;
+    expiresAt: string;
+}
 
 interface ShopState {
     items: Reward[];
-    inventory: { itemId: string; quantity: number }[]; // List of items owned with quantity
-    purchaseItem: (itemId: string, cost: number) => void;
+    inventory: InventoryItem[];
+    activeItems: ActiveItem[];
     fetchInventory: () => Promise<void>;
+    purchaseItem: (itemId: string, cost: number) => Promise<void>;
+    consumeItem: (itemId: string, durationMinutes: number) => Promise<void>;
     resetData: () => Promise<void>;
 }
-
-import { supabase } from '@/lib/supabase/client';
 
 export const useShopStore = create<ShopState>((set, get) => ({
     items: REWARDS,
     inventory: [],
+    activeItems: [],
 
     fetchInventory: async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data: inventory } = await supabase
+        // Fetch Inventory
+        const { data: inv } = await supabase
             .from('inventory')
             .select('item_id, quantity')
             .eq('user_id', user.id);
 
-        if (inventory) {
-            set({ inventory: inventory.map(i => ({ itemId: i.item_id, quantity: i.quantity })) });
+        if (inv) {
+            set({
+                inventory: inv.map(i => ({ itemId: i.item_id, quantity: i.quantity || 1 }))
+            });
+        }
+
+        // Fetch Active Items
+        const { data: active } = await supabase
+            .from('active_items')
+            .select('item_id, expires_at')
+            .eq('user_id', user.id)
+            .gt('expires_at', new Date().toISOString());
+
+        if (active) {
+            set({
+                activeItems: active.map(a => ({ itemId: a.item_id, expiresAt: a.expires_at }))
+            });
         }
     },
 
     purchaseItem: async (itemId, cost) => {
-        const item = get().items.find((i) => i.id === itemId);
-        if (!item) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-        // Deduct points from user store
+        // Check points
+        const { points } = useUserStore.getState();
+        if (points < cost) {
+            alert('Not enough points!');
+            return;
+        }
+
+        // Deduct points
         useUserStore.getState().spendPoints(cost);
 
         const currentInventory = get().inventory;
@@ -47,20 +83,11 @@ export const useShopStore = create<ShopState>((set, get) => ({
             set({ inventory: newInventory });
 
             // Update DB
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                // We need to fetch the current quantity from DB to be safe, or just increment
-                // Supabase doesn't have a simple "increment" without a function, so we'll use the known value
-                // actually, we can just upsert if we knew the ID, but we have a unique constraint on user_id + item_id
-
-                // Fetch current to be sure? Or just trust local?
-                // Let's trust local for speed, but for DB integrity:
-                const { error } = await supabase
-                    .from('inventory')
-                    .update({ quantity: newInventory[existingItemIndex].quantity })
-                    .eq('user_id', user.id)
-                    .eq('item_id', itemId);
-            }
+            await supabase
+                .from('inventory')
+                .update({ quantity: newInventory[existingItemIndex].quantity })
+                .eq('user_id', user.id)
+                .eq('item_id', itemId);
         } else {
             // Insert local
             set((state) => ({
@@ -68,22 +95,62 @@ export const useShopStore = create<ShopState>((set, get) => ({
             }));
 
             // Insert DB
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                await supabase.from('inventory').insert({
-                    user_id: user.id,
-                    item_id: itemId,
-                    quantity: 1
-                });
-            }
+            await supabase.from('inventory').insert({
+                user_id: user.id,
+                item_id: itemId,
+                quantity: 1
+            });
+        }
+    },
+
+    consumeItem: async (itemId, durationMinutes) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const currentInventory = get().inventory;
+        const itemIndex = currentInventory.findIndex(i => i.itemId === itemId);
+
+        if (itemIndex === -1 || currentInventory[itemIndex].quantity <= 0) return;
+
+        // Decrement Quantity
+        const newInventory = [...currentInventory];
+        newInventory[itemIndex].quantity -= 1;
+        set({ inventory: newInventory });
+
+        // Update DB Inventory
+        if (newInventory[itemIndex].quantity === 0) {
+            await supabase.from('inventory').delete().eq('user_id', user.id).eq('item_id', itemId);
+            set({ inventory: newInventory.filter(i => i.quantity > 0) });
+        } else {
+            await supabase
+                .from('inventory')
+                .update({ quantity: newInventory[itemIndex].quantity })
+                .eq('user_id', user.id)
+                .eq('item_id', itemId);
+        }
+
+        // Activate Item (if duration > 0)
+        if (durationMinutes > 0) {
+            const expiresAt = new Date(Date.now() + durationMinutes * 60000).toISOString();
+
+            set(state => ({
+                activeItems: [...state.activeItems, { itemId, expiresAt }]
+            }));
+
+            await supabase.from('active_items').insert({
+                user_id: user.id,
+                item_id: itemId,
+                expires_at: expiresAt
+            });
         }
     },
 
     resetData: async () => {
-        set({ inventory: [] });
+        set({ inventory: [], activeItems: [] });
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
             await supabase.from('inventory').delete().eq('user_id', user.id);
+            await supabase.from('active_items').delete().eq('user_id', user.id);
         }
     },
 }));

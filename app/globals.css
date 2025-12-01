@@ -13,8 +13,10 @@
 
 /* Ocean Blue */
 [data-theme='theme-ocean'] {
-  --background: #0f172a; /* Slate 900 */
-  --foreground: #e2e8f0; /* Slate 200 */
+  --background: #0f172a;
+  /* Slate 900 */
+  --foreground: #e2e8f0;
+  /* Slate 200 */
   /* We can override other tailwind vars if we set them up, 
      but for now we rely on global bg colors. 
      To make this effective, we need to ensure our components use 
@@ -24,52 +26,239 @@
      For this prototype, let's use a global background override.
   */
 }
+
 body[data-theme='theme-ocean'] {
-    background-color: #0f172a;
-    color: #e2e8f0;
+  background-color: #0f172a;
+  color: #e2e8f0;
 }
 
 /* Forest Green */
 body[data-theme='theme-forest'] {
-    background-color: #052e16; /* Green 950 */
-    color: #dcfce7; /* Green 100 */
+  background-color: #052e16;
+  /* Green 950 */
+  color: #dcfce7;
+  /* Green 100 */
 }
 
 /* Sunset Orange */
 body[data-theme='theme-sunset'] {
-    background-color: #431407; /* Orange 950 */
-    color: #ffedd5; /* Orange 100 */
+  background-color: #431407;
+  /* Orange 950 */
+  color: #ffedd5;
+  /* Orange 100 */
 }
 
 /* Cyberpunk Neon */
 body[data-theme='theme-cyberpunk'] {
-    background-color: #09090b; /* Zinc 950 */
-    color: #00ff9d; /* Neon Green */
-    border-color: #ff00ff; /* Neon Pink */
+  background-color: #09090b;
+  /* Zinc 950 */
+  color: #00ff9d;
+  /* Neon Green */
+  border-color: #ff00ff;
+  /* Neon Pink */
 }
+
 /* Add a glow effect to containers in cyberpunk */
-[data-theme='theme-cyberpunk'] .bg-white, 
+[data-theme='theme-cyberpunk'] .bg-white,
 [data-theme='theme-cyberpunk'] .dark\:bg-slate-900 {
-    border: 1px solid #ff00ff;
-    box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+  border: 1px solid #ff00ff;
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
 }
 
 /* Sepia */
 body[data-theme='theme-sepia'] {
-    background-color: #f5f5dc;
-    color: #4a3b2a;
+  background-color: #f5f5dc;
+  color: #4a3b2a;
 }
+
 [data-theme='theme-sepia'] .dark\:bg-slate-900 {
-    background-color: #e8dcc5;
-    color: #4a3b2a;
-    border-color: #d1c4a9;
+  background-color: #e8dcc5;
+  color: #4a3b2a;
+  border-color: #d1c4a9;
 }
 
 /* Matrix */
 body[data-theme='theme-matrix'] {
-    background-color: #000000;
-    color: #00ff00;
-    font-family: 'Courier New', monospace;
+  background-color: #000000;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+}
+
+/* Pastel Dream */
+body[data-theme='theme-pastel'] {
+  background-color: #fff1f2;
+  /* Rose 50 */
+  color: #881337;
+  /* Rose 900 */
+}
+
+[data-theme='theme-pastel'] .dark\:bg-slate-900 {
+  background-color: #fff0f5;
+  border-color: #fbcfe8;
+  color: #881337;
+}
+
+/* Monochrome */
+body[data-theme='theme-mono'] {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+[data-theme='theme-mono'] .dark\:bg-slate-900 {
+  background-color: #111111;
+  border-color: #333333;
+  color: #ffffff;
+}
+
+/* Dracula */
+body[data-theme='theme-dracula'] {
+  background-color: #282a36;
+  color: #f8f8f2;
+}
+
+[data-theme='theme-dracula'] .dark\:bg-slate-900 {
+  background-color: #44475a;
+  border-color: #6272a4;
+}
+
+/* Solarized Light */
+body[data-theme='theme-solarized'] {
+  background-color: #fdf6e3;
+  color: #657b83;
+}
+
+[data-theme='theme-solarized'] .dark\:bg-slate-900 {
+  background-color: #eee8d5;
+  border-color: #93a1a1;
+  color: #586e75;
+}
+
+/* Cherry Blossom */
+body[data-theme='theme-cherry'] {
+  background-color: #fce7f3;
+  /* Pink 100 */
+  color: #831843;
+  /* Pink 900 */
+}
+
+[data-theme='theme-cherry'] .dark\:bg-slate-900 {
+  background-color: #fbcfe8;
+  border-color: #f9a8d4;
+}
+
+/* Royal Gold */
+body[data-theme='theme-gold'] {
+  background-color: #2a2208;
+  color: #ffd700;
+}
+
+[data-theme='theme-gold'] .dark\:bg-slate-900 {
+  background-color: #42360d;
+  border-color: #ffd700;
+  color: #ffd700;
+}
+
+/* Midnight Purple */
+body[data-theme='theme-purple'] {
+  background-color: #1e0a2e;
+  color: #e9d5ff;
+}
+
+[data-theme='theme-purple'] .dark\:bg-slate-900 {
+  background-color: #3b0764;
+  border-color: #7e22ce;
+}
+
+/* Space Voyager */
+body[data-theme='theme-space'] {
+  background-color: #0b0d17;
+  color: #a5b4fc;
+  background-image: radial-gradient(white 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+/* Retro 8-Bit */
+body[data-theme='theme-8bit'] {
+  background-color: #2d2d2d;
+  color: #33ff00;
+  font-family: 'Press Start 2P', cursive, monospace;
+  /* Fallback */
+}
+
+[data-theme='theme-8bit'] .rounded-xl,
+[data-theme='theme-8bit'] .rounded-full {
+  border-radius: 0px;
+  border: 4px solid #33ff00;
+}
+
+/* Glassmorphism */
+body[data-theme='theme-glass'] {
+  background: linear-gradient(45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  color: white;
+}
+
+[data-theme='theme-glass'] .dark\:bg-slate-900,
+[data-theme='theme-glass'] .bg-white {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Steampunk */
+body[data-theme='theme-steam'] {
+  background-color: #2b2118;
+  color: #d4b483;
+  background-image: repeating-linear-gradient(45deg, #3d2e22 0, #3d2e22 10px, #2b2118 10px, #2b2118 20px);
+}
+
+[data-theme='theme-steam'] .dark\:bg-slate-900 {
+  background-color: #1f1610;
+  border: 2px solid #c19a6b;
+}
+
+/* Ethereal */
+body[data-theme='theme-ethereal'] {
+  background: linear-gradient(to bottom, #e0eafc, #cfdef3);
+  color: #475569;
+}
+
+[data-theme='theme-ethereal'] .dark\:bg-slate-900 {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid white;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+/* Invisible UI */
+body[data-theme='theme-invisible'] {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+[data-theme='theme-invisible'] .dark\:bg-slate-900,
+[data-theme='theme-invisible'] .bg-white,
+[data-theme='theme-invisible'] .border,
+[data-theme='theme-invisible'] .shadow-sm {
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 @theme inline {

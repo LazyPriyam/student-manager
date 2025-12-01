@@ -12,7 +12,8 @@ export function ThemeManager() {
         document.documentElement.setAttribute('data-theme', activeTheme);
 
         // Handle special cases if needed (e.g. forcing dark mode)
-        if (activeTheme === 'theme-light' || activeTheme === 'theme-sepia') {
+        const lightThemes = ['theme-light', 'theme-sepia', 'theme-pastel', 'theme-solarized', 'theme-cherry', 'theme-ethereal'];
+        if (lightThemes.includes(activeTheme)) {
             document.documentElement.classList.remove('dark');
         } else {
             document.documentElement.classList.add('dark');
