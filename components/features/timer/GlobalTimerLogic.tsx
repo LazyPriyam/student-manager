@@ -17,7 +17,7 @@ export function GlobalTimerLogic() {
     useEffect(() => {
         let interval: NodeJS.Timeout;
 
-        if (isActive && startTime) {
+        if (isActive && startTime && timeLeft > 0) {
             // Store the initial duration when the timer started (or resumed)
             // We need to know what the total duration was supposed to be to calculate remaining
             // But timeLeft in store is updated every second.
