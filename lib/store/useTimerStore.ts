@@ -8,6 +8,7 @@ export interface SessionLog {
 interface TimerState {
     timeLeft: number;
     isActive: boolean;
+    startTime: number | null;
     mode: 'focus' | 'break' | 'long-break';
     totalSessions: number;
     currentSessionIndex: number;
@@ -36,6 +37,7 @@ import { supabase } from '@/lib/supabase/client';
 export const useTimerStore = create<TimerState>((set, get) => ({
     timeLeft: 25 * 60,
     isActive: false,
+    startTime: null,
     mode: 'focus',
     totalSessions: 0,
     currentSessionIndex: 0,
@@ -88,6 +90,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
                 set({
                     mode: timer_mode as any,
                     isActive: true,
+                    startTime: new Date(timer_start_time).getTime(),
                     timeLeft: remaining > 0 ? remaining : 0
                 });
             } else {
@@ -124,14 +127,15 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     setTimeLeft: (time) => set({ timeLeft: time }),
 
     setIsActive: async (active) => {
-        set({ isActive: active });
+        const now = Date.now();
+        set({ isActive: active, startTime: active ? now : null });
         const { timeLeft, mode } = get();
         const { data: { user } } = await supabase.auth.getUser();
 
         if (user) {
             await supabase.from('profiles').update({
                 timer_is_active: active,
-                timer_start_time: active ? new Date().toISOString() : null,
+                timer_start_time: active ? new Date(now).toISOString() : null,
                 timer_duration: timeLeft,
                 timer_mode: mode
             }).eq('id', user.id);

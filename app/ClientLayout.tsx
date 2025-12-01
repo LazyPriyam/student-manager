@@ -5,6 +5,8 @@ import { LevelUpModal } from "@/components/features/gamification/LevelUpModal";
 import { RewardToast } from "@/components/ui/RewardToast";
 import { HelpSystem } from "@/components/features/help/HelpSystem";
 import { ActivePowerups } from "@/components/features/gamification/ActivePowerups";
+import { FloatingTimer } from "@/components/features/timer/FloatingTimer";
+import { GlobalTimerLogic } from "@/components/features/timer/GlobalTimerLogic";
 import { useHabitStore } from '@/lib/store/useHabitStore';
 import { useUserStore } from '@/lib/store/useUserStore';
 import { useTaskStore } from '@/lib/store/useTaskStore';
@@ -62,6 +64,8 @@ export default function ClientLayout({
             <RewardToast />
             <HelpSystem />
             <ActivePowerups />
+            <FloatingTimer />
+            <GlobalTimerLogic />
             <Header />
             {children}
         </>

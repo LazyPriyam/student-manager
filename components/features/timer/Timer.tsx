@@ -5,7 +5,6 @@ import { useTimerStore } from '@/lib/store/useTimerStore';
 import { useUserStore } from '@/lib/store/useUserStore';
 import { Button } from '@/components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
 import { soundManager } from '@/lib/sound';
 
 export function Timer() {
@@ -31,63 +30,7 @@ export function Timer() {
         setLocalLongBreak(longBreakDuration);
     }, [focusDuration, breakDuration, longBreakDuration]);
 
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
-
-        if (isActive && timeLeft > 0) {
-            interval = setInterval(() => {
-                setTimeLeft(timeLeft - 1);
-            }, 1000);
-        } else if (timeLeft <= 0 && isActive) {
-            setIsActive(false);
-            // Timer finished!
-            soundManager.playComplete(activeSound);
-
-            if (mode === 'focus') {
-                addXp(focusDuration * 2); // Award 2 XP per minute
-                logSession(focusDuration);
-
-                // Trigger Active Effect
-                if (activeEffect === 'fx-confetti') {
-                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                } else if (activeEffect === 'fx-fireworks') {
-                    const duration = 3000;
-                    const animationEnd = Date.now() + duration;
-                    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-                    const random = (min: number, max: number) => Math.random() * (max - min) + min;
-
-                    const interval: any = setInterval(function () {
-                        const timeLeft = animationEnd - Date.now();
-                        if (timeLeft <= 0) return clearInterval(interval);
-                        const particleCount = 50 * (timeLeft / duration);
-                        confetti({ ...defaults, particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } });
-                        confetti({ ...defaults, particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } });
-                    }, 250);
-                } else if (activeEffect === 'fx-coins') {
-                    confetti({ shapes: ['circle'], colors: ['#FFD700'], particleCount: 50, gravity: 2 });
-                } else if (activeEffect === 'fx-emojis') {
-                    confetti({ shapes: ['square'], scalar: 2, particleCount: 30, colors: ['#FFD700'] });
-                } else {
-                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                }
-            }
-
-            if (sessionPlan.length > 0) {
-                advanceSession();
-            } else {
-                // Default behavior if no plan
-                if (mode === 'focus') {
-                    setMode('break');
-                    setTimeLeft(breakDuration * 60);
-                } else {
-                    setMode('focus');
-                    setTimeLeft(focusDuration * 60);
-                }
-            }
-        }
-
-        return () => clearInterval(interval);
-    }, [isActive, timeLeft, mode, sessionPlan, focusDuration, breakDuration, setTimeLeft, setIsActive, setMode, addXp, advanceSession, logSession, activeSound, activeEffect]);
+    // Timer interval logic moved to GlobalTimerLogic.tsx
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
