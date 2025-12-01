@@ -171,6 +171,8 @@ create policy "Users can delete their own tasks" on tasks for delete using (auth
 
 create policy "Users can view their own inventory" on inventory for select using (auth.uid() = user_id);
 create policy "Users can insert their own inventory" on inventory for insert with check (auth.uid() = user_id);
+create policy "Users can update their own inventory" on inventory for update using (auth.uid() = user_id);
+create policy "Users can delete their own inventory" on inventory for delete using (auth.uid() = user_id);
 
 create policy "Users can view own focus sessions"
   on focus_sessions for select
@@ -179,6 +181,10 @@ create policy "Users can view own focus sessions"
 create policy "Users can insert own focus sessions"
   on focus_sessions for insert
   with check ( auth.uid() = user_id );
+
+create policy "Users can delete own focus sessions"
+  on focus_sessions for delete
+  using ( auth.uid() = user_id );
 
 create policy "Users can view own journal entries"
   on journal_entries for select

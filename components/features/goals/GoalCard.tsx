@@ -1,8 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { Goal, useGoalStore } from '@/lib/store/useGoalStore';
 import { motion } from 'framer-motion';
-import { Calendar, CheckCircle, Circle, Trophy, AlertTriangle, Clock } from 'lucide-react';
+import { Calendar, CheckCircle, Circle, Trophy, AlertTriangle, Clock, Pencil, Trash2, X, Check } from 'lucide-react';
 import { differenceInDays, format } from 'date-fns';
 
 interface GoalCardProps {
@@ -10,7 +11,21 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ goal }: GoalCardProps) {
-    const { toggleMilestone, deleteGoal } = useGoalStore();
+    const { toggleMilestone, deleteGoal, updateMilestone, deleteMilestone } = useGoalStore();
+    const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState('');
+
+    const startEditing = (id: string, currentTitle: string) => {
+        setEditingMilestoneId(id);
+        setEditTitle(currentTitle);
+    };
+
+    const saveEdit = async (goalId: string, milestoneId: string) => {
+        if (editTitle.trim()) {
+            await updateMilestone(goalId, milestoneId, editTitle);
+            setEditingMilestoneId(null);
+        }
+    };
 
     const totalDays = differenceInDays(new Date(goal.endDate), new Date(goal.startDate));
     const daysLeft = differenceInDays(new Date(goal.endDate), new Date());
@@ -87,19 +102,66 @@ export function GoalCard({ goal }: GoalCardProps) {
             {/* Milestones */}
             <div className="space-y-2">
                 {goal.milestones.map(milestone => (
-                    <button
+                    <div
                         key={milestone.id}
-                        onClick={() => toggleMilestone(goal.id, milestone.id)}
-                        disabled={goal.status !== 'active'}
-                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left group"
+                        className="group flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                     >
-                        <div className={`text-slate-400 transition-colors ${milestone.isCompleted ? 'text-green-500' : 'group-hover:text-blue-500'}`}>
-                            {milestone.isCompleted ? <CheckCircle size={18} /> : <Circle size={18} />}
-                        </div>
-                        <span className={`text-sm ${milestone.isCompleted ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
-                            {milestone.title}
-                        </span>
-                    </button>
+                        {editingMilestoneId === milestone.id ? (
+                            <div className="flex items-center gap-2 w-full">
+                                <input
+                                    type="text"
+                                    value={editTitle}
+                                    onChange={(e) => setEditTitle(e.target.value)}
+                                    className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-sm"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') saveEdit(goal.id, milestone.id);
+                                        if (e.key === 'Escape') setEditingMilestoneId(null);
+                                    }}
+                                />
+                                <button onClick={() => saveEdit(goal.id, milestone.id)} className="text-green-500 hover:bg-green-100 p-1 rounded">
+                                    <Check size={16} />
+                                </button>
+                                <button onClick={() => setEditingMilestoneId(null)} className="text-red-500 hover:bg-red-100 p-1 rounded">
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => toggleMilestone(goal.id, milestone.id)}
+                                    disabled={goal.status !== 'active'}
+                                    className="flex items-center gap-3 text-left flex-1"
+                                >
+                                    <div className={`text-slate-400 transition-colors ${milestone.isCompleted ? 'text-green-500' : 'group-hover:text-blue-500'}`}>
+                                        {milestone.isCompleted ? <CheckCircle size={18} /> : <Circle size={18} />}
+                                    </div>
+                                    <span className={`text-sm ${milestone.isCompleted ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
+                                        {milestone.title}
+                                    </span>
+                                </button>
+
+                                {goal.status === 'active' && (
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={() => startEditing(milestone.id, milestone.title)}
+                                            className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
+                                            title="Edit Milestone"
+                                        >
+                                            <Pencil size={14} />
+                                        </button>
+                                        <button
+                                            onClick={() => deleteMilestone(goal.id, milestone.id)}
+                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                                            title="Delete Milestone"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
                 ))}
             </div>
 

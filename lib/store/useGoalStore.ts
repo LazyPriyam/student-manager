@@ -30,6 +30,8 @@ interface GoalState {
     fetchGoals: () => Promise<void>;
     addGoal: (goal: Omit<Goal, 'id' | 'status' | 'milestones'>, milestones: string[]) => Promise<void>;
     toggleMilestone: (goalId: string, milestoneId: string) => Promise<void>;
+    updateMilestone: (goalId: string, milestoneId: string, newTitle: string) => Promise<void>;
+    deleteMilestone: (goalId: string, milestoneId: string) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
     resetData: () => Promise<void>;
 }
@@ -136,10 +138,12 @@ export const useGoalStore = create<GoalState>((set, get) => ({
             )
         }));
 
-        // Gamification: Award XP for completing milestone
+        // Gamification: Award/Deduct XP for completing/unchecking milestone
+        const xpReward = goal.difficulty === 'hard' ? 50 : goal.difficulty === 'medium' ? 30 : 10;
         if (newStatus) {
-            const xpReward = goal.difficulty === 'hard' ? 50 : goal.difficulty === 'medium' ? 30 : 10;
             useUserStore.getState().addXp(xpReward);
+        } else {
+            useUserStore.getState().addXp(-xpReward);
         }
 
         // Check if all milestones are complete -> Complete Goal?
@@ -164,6 +168,28 @@ export const useGoalStore = create<GoalState>((set, get) => ({
 
         // Sync Milestone Status
         await supabase.from('goal_milestones').update({ is_completed: newStatus }).eq('id', milestoneId);
+    },
+
+    updateMilestone: async (goalId, milestoneId, newTitle) => {
+        set(state => ({
+            goals: state.goals.map(g =>
+                g.id === goalId
+                    ? { ...g, milestones: g.milestones.map(m => m.id === milestoneId ? { ...m, title: newTitle } : m) }
+                    : g
+            )
+        }));
+        await supabase.from('goal_milestones').update({ title: newTitle }).eq('id', milestoneId);
+    },
+
+    deleteMilestone: async (goalId, milestoneId) => {
+        set(state => ({
+            goals: state.goals.map(g =>
+                g.id === goalId
+                    ? { ...g, milestones: g.milestones.filter(m => m.id !== milestoneId) }
+                    : g
+            )
+        }));
+        await supabase.from('goal_milestones').delete().eq('id', milestoneId);
     },
 
     deleteGoal: async (id) => {

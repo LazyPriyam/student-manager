@@ -104,6 +104,9 @@ export const useUserStore = create<UserState>((set) => ({
             if (newLevel > state.level) {
                 const levelsGained = newLevel - state.level;
                 newPoints += (100 * levelsGained); // 100 Points per level
+            } else if (newLevel < state.level) {
+                const levelsLost = state.level - newLevel;
+                newPoints = Math.max(0, newPoints - (100 * levelsLost)); // Deduct points, but don't go below 0
             }
 
             // Sync to DB
