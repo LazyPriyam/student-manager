@@ -6,6 +6,7 @@ import { useTaskStore } from '@/lib/store/useTaskStore';
 import { useShopStore } from '@/lib/store/useShopStore';
 import { useJournalStore } from '@/lib/store/useJournalStore';
 import { useTimerStore } from '@/lib/store/useTimerStore';
+import { useGoalStore } from '@/lib/store/useGoalStore';
 import { Trophy, Star, Zap, Clock } from 'lucide-react';
 import { FocusChart } from '@/components/features/charts/FocusChart';
 import { InventoryGrid } from '@/components/features/profile/InventoryGrid';
@@ -143,7 +144,9 @@ export default function ProfilePage() {
                                             useHabitStore.getState().resetData(),
                                             useTaskStore.getState().resetData(),
                                             useShopStore.getState().resetData(),
-                                            useJournalStore.getState().resetData()
+                                            useJournalStore.getState().resetData(),
+                                            useTimerStore.getState().resetData(),
+                                            useGoalStore.getState().resetData()
                                         ]);
                                         alert('All data has been reset.');
                                     }

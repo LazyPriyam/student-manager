@@ -28,6 +28,7 @@ interface TimerState {
     advanceSession: () => void;
     logSession: (duration: number) => void;
     syncWithSupabase: () => Promise<void>;
+    resetData: () => Promise<void>;
 }
 
 import { supabase } from '@/lib/supabase/client';
@@ -213,6 +214,41 @@ export const useTimerStore = create<TimerState>((set, get) => ({
                 duration: duration,
                 completed_at: new Date().toISOString()
             });
+        }
+    },
+
+    resetData: async () => {
+        set({
+            timeLeft: 25 * 60,
+            isActive: false,
+            mode: 'focus',
+            totalSessions: 0,
+            currentSessionIndex: 0,
+            sessionPlan: [],
+            history: [],
+            totalFocusMinutes: 0,
+            focusDuration: 25,
+            breakDuration: 5,
+            longBreakDuration: 15
+        });
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            // Clear History
+            await supabase.from('focus_sessions').delete().eq('user_id', user.id);
+
+            // Reset Profile Config
+            await supabase.from('profiles').update({
+                timer_start_time: null,
+                timer_duration: 25 * 60,
+                timer_mode: 'focus',
+                timer_is_active: false,
+                timer_focus_duration: 25,
+                timer_break_duration: 5,
+                timer_long_break_duration: 15,
+                timer_session_plan: [],
+                timer_session_index: 0
+            }).eq('id', user.id);
         }
     },
 }));
