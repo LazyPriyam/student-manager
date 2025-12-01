@@ -4,6 +4,7 @@ import { ThemeManager } from "@/components/features/settings/ThemeManager";
 import { LevelUpModal } from "@/components/features/gamification/LevelUpModal";
 import { RewardToast } from "@/components/ui/RewardToast";
 import { HelpSystem } from "@/components/features/help/HelpSystem";
+import { ActivePowerups } from "@/components/features/gamification/ActivePowerups";
 import { useHabitStore } from '@/lib/store/useHabitStore';
 import { useUserStore } from '@/lib/store/useUserStore';
 import { useTaskStore } from '@/lib/store/useTaskStore';
@@ -60,6 +61,7 @@ export default function ClientLayout({
             <LevelUpModal />
             <RewardToast />
             <HelpSystem />
+            <ActivePowerups />
             <Header />
             {children}
         </>
