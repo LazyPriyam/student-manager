@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { HelpCircle, X, Clock, LayoutGrid, CheckSquare, ShoppingBag } from 'lucide-react';
+import { HelpCircle, X, Clock, LayoutGrid, CheckSquare, ShoppingBag, Target } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export function HelpSystem() {
@@ -89,6 +89,25 @@ export function HelpSystem() {
                                         • <span className="font-semibold text-slate-900 dark:text-white">XP & Points</span>: Earn rewards for every completion.
                                         <br />
                                         • <span className="font-semibold text-slate-900 dark:text-white">Goals</span>: Set start and end dates for your challenges.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Section: Goals */}
+                            <div className="flex gap-4">
+                                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/20 rounded-xl h-fit text-indigo-600 dark:text-indigo-400">
+                                    <Target size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold mb-2">Goal Setting</h3>
+                                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        Achieve your dreams by breaking them down.
+                                        <br />
+                                        • <span className="font-semibold text-slate-900 dark:text-white">Milestones</span>: Break big goals into smaller, manageable steps.
+                                        <br />
+                                        • <span className="font-semibold text-slate-900 dark:text-white">Wager</span>: Bet your own Points on your success!
+                                        <br />
+                                        • <span className="font-semibold text-slate-900 dark:text-white">Rewards</span>: Earn huge XP and Point bonuses for completing goals.
                                     </p>
                                 </div>
                             </div>

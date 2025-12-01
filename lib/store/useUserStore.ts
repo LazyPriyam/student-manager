@@ -69,11 +69,33 @@ export const useUserStore = create<UserState>((set) => ({
     },
 
     addXp: async (amount) => {
+        // Check for active power-ups
+        // We use require to avoid circular dependency issues at module level if any
+        const { activeItems } = require('./useShopStore').useShopStore.getState();
+        const now = Date.now();
+
+        let multiplier = 1;
+
+        // XP Potion (1.1x)
+        if (activeItems.some((i: any) => i.itemId === 'power-xp1' && new Date(i.expiresAt).getTime() > now)) {
+            multiplier *= 1.1;
+        }
+        // Double XP (2x)
+        if (activeItems.some((i: any) => i.itemId === 'power-xp2' && new Date(i.expiresAt).getTime() > now)) {
+            multiplier *= 2;
+        }
+        // Triple XP (3x)
+        if (activeItems.some((i: any) => i.itemId === 'power-xp3' && new Date(i.expiresAt).getTime() > now)) {
+            multiplier *= 3;
+        }
+
+        const finalAmount = Math.round(amount * multiplier);
+
         // Trigger notification
-        useNotificationStore.getState().addNotification({ type: 'xp', amount });
+        useNotificationStore.getState().addNotification({ type: 'xp', amount: finalAmount });
 
         set((state) => {
-            const newXp = state.xp + amount;
+            const newXp = state.xp + finalAmount;
             // Quadratic curve: Level = floor(sqrt(XP / 100)) + 1
             // 100 XP = Lvl 2, 400 XP = Lvl 3, 900 XP = Lvl 4
             const newLevel = Math.floor(Math.sqrt(newXp / 100)) + 1;
@@ -100,11 +122,24 @@ export const useUserStore = create<UserState>((set) => ({
     },
 
     addPoints: async (amount) => {
+        // Check for active power-ups
+        const { activeItems } = require('./useShopStore').useShopStore.getState();
+        const now = Date.now();
+
+        let multiplier = 1;
+
+        // Point Booster (1.5x)
+        if (activeItems.some((i: any) => i.itemId === 'power-point' && new Date(i.expiresAt).getTime() > now)) {
+            multiplier *= 1.5;
+        }
+
+        const finalAmount = Math.round(amount * multiplier);
+
         // Trigger notification
-        useNotificationStore.getState().addNotification({ type: 'points', amount });
+        useNotificationStore.getState().addNotification({ type: 'points', amount: finalAmount });
 
         set((state) => {
-            const newPoints = state.points + amount;
+            const newPoints = state.points + finalAmount;
 
             supabase.auth.getUser().then(({ data: { user } }) => {
                 if (user) {

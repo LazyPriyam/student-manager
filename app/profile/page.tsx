@@ -11,6 +11,7 @@ import { Trophy, Star, Zap, Clock } from 'lucide-react';
 import { FocusChart } from '@/components/features/charts/FocusChart';
 import { InventoryGrid } from '@/components/features/profile/InventoryGrid';
 import { CouponList } from '@/components/features/profile/CouponList';
+import { PowerupList } from '@/components/features/profile/PowerupList';
 
 export default function ProfilePage() {
     const { level, xp, points, activeTitle } = useUserStore();
@@ -120,6 +121,12 @@ export default function ProfilePage() {
                         <div className="p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                             <h3 className="text-sm font-bold text-slate-500 uppercase mb-4">Active Coupons</h3>
                             <CouponList />
+                        </div>
+
+                        {/* Active Power-ups */}
+                        <div className="p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <h3 className="text-sm font-bold text-slate-500 uppercase mb-4">Active Power-ups</h3>
+                            <PowerupList />
                         </div>
 
                         {/* Placeholder for future stats */}

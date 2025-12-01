@@ -15,7 +15,6 @@ export function ShopList() {
 
     const tabs: { id: RewardType | 'all'; label: string }[] = [
         { id: 'all', label: 'All' },
-        { id: 'theme', label: 'Themes' },
         { id: 'sound', label: 'Sounds' },
         { id: 'effect', label: 'Effects' },
         { id: 'title', label: 'Titles' },
@@ -24,6 +23,7 @@ export function ShopList() {
     ];
 
     const filteredItems = items.filter(item => {
+        if (item.type === 'theme') return false; // Explicitly hide themes
         if (activeTab !== 'all' && item.type !== activeTab) return false;
         // Progressive disclosure: only show items up to level + 5
         if (item.unlockLevel > level + 5) return false;

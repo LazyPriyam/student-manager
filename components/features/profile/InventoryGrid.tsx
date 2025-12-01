@@ -11,10 +11,9 @@ import { Button } from '@/components/ui/Button';
 export function InventoryGrid() {
     const { items, inventory } = useShopStore();
     const { activeTheme, activeSound, activeEffect, activeTitle, setTheme, setSound, setEffect, setTitle, level } = useUserStore();
-    const [activeTab, setActiveTab] = useState<RewardType>('theme');
+    const [activeTab, setActiveTab] = useState<RewardType>('sound');
 
     const tabs: { id: RewardType; label: string }[] = [
-        { id: 'theme', label: 'Themes' },
         { id: 'sound', label: 'Sounds' },
         { id: 'effect', label: 'Effects' },
         { id: 'title', label: 'Titles' },
