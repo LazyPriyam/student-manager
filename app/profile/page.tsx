@@ -9,6 +9,7 @@ import { useTimerStore } from '@/lib/store/useTimerStore';
 import { useGoalStore } from '@/lib/store/useGoalStore';
 import { Trophy, Star, Zap, Clock } from 'lucide-react';
 import { FocusChart } from '@/components/features/charts/FocusChart';
+import { ProductivityChart } from '@/components/features/charts/ProductivityChart';
 import { InventoryGrid } from '@/components/features/profile/InventoryGrid';
 import { CouponList } from '@/components/features/profile/CouponList';
 import { PowerupList } from '@/components/features/profile/PowerupList';
@@ -21,6 +22,16 @@ export default function ProfilePage() {
     // Mock data for "All Time High" - in a real app this would come from analytics store
     const maxDailyFocus = 120;
 
+    const getLevelStyles = (level: number) => {
+        if (level >= 100) return "border-cyan-400 bg-cyan-50 dark:bg-cyan-900/20 shadow-[0_0_20px_rgba(34,211,238,0.5)]";
+        if (level >= 50) return "border-purple-400 bg-purple-50 dark:bg-purple-900/20 shadow-[0_0_15px_rgba(168,85,247,0.4)]";
+        if (level >= 25) return "border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 shadow-[0_0_15px_rgba(234,179,8,0.4)]";
+        if (level >= 10) return "border-slate-400 bg-slate-50 dark:bg-slate-800 shadow-[0_0_10px_rgba(148,163,184,0.3)]";
+        return "border-orange-200 bg-orange-50 dark:bg-orange-900/10"; // Bronze/Default
+    };
+
+    const levelStyles = getLevelStyles(level);
+
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-8 font-sans">
             <div className="max-w-5xl mx-auto">
@@ -31,9 +42,9 @@ export default function ProfilePage() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <div className="p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center gap-2 relative overflow-hidden">
+                    <div className={`p-6 rounded-xl border transition-all duration-300 flex flex-col items-center justify-center gap-2 relative ${levelStyles}`}>
                         {activeTitle && (
-                            <div className="absolute top-2 right-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold uppercase rounded-full border border-yellow-200">
+                            <div className="mb-1 px-3 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold uppercase rounded-full border border-yellow-200 text-center whitespace-nowrap">
                                 {activeTitle}
                             </div>
                         )}
@@ -92,6 +103,11 @@ export default function ProfilePage() {
 
                     {/* Left Column: Charts & Inventory */}
                     <div className="lg:col-span-2 space-y-8">
+                        {/* Productivity Chart */}
+                        <div className="w-full">
+                            <ProductivityChart />
+                        </div>
+
                         {/* Focus Chart */}
                         <div className="p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Focus History</h3>

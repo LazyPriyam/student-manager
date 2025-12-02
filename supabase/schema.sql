@@ -277,3 +277,19 @@ alter table active_items enable row level security;
 create policy "Users can view own active items" on active_items for select using (auth.uid() = user_id);
 create policy "Users can insert own active items" on active_items for insert with check (auth.uid() = user_id);
 create policy "Users can delete own active items" on active_items for delete using (auth.uid() = user_id);
+
+-- Task History Table
+create table task_history (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users not null,
+  title text not null,
+  priority text,
+  completed_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- RLS for Task History
+alter table task_history enable row level security;
+
+create policy "Users can view own task history" on task_history for select using (auth.uid() = user_id);
+create policy "Users can insert own task history" on task_history for insert with check (auth.uid() = user_id);
+create policy "Users can delete own task history" on task_history for delete using (auth.uid() = user_id);

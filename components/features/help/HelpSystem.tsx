@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { HelpCircle, X, Clock, LayoutGrid, CheckSquare, ShoppingBag, Target } from 'lucide-react';
+import { HelpCircle, X, Clock, LayoutGrid, CheckSquare, ShoppingBag, Target, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export function HelpSystem() {
@@ -108,6 +108,25 @@ export function HelpSystem() {
                                         • <span className="font-semibold text-slate-900 dark:text-white">Wager</span>: Bet your own Points on your success!
                                         <br />
                                         • <span className="font-semibold text-slate-900 dark:text-white">Rewards</span>: Earn huge XP and Point bonuses for completing goals.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Section: Productivity Chart */}
+                            <div className="flex gap-4">
+                                <div className="p-3 bg-cyan-100 dark:bg-cyan-900/20 rounded-xl h-fit text-cyan-600 dark:text-cyan-400">
+                                    <TrendingUp size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold mb-2">Productivity Velocity</h3>
+                                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        Track your growth with the "Better Than Yesterday" metric.
+                                        <br />
+                                        • <span className="font-semibold text-slate-900 dark:text-white">Growth Score</span>: Calculated daily based on Focus Minutes (1x), Tasks (5x), and Habits (10x).
+                                        <br />
+                                        • <span className="font-semibold text-slate-900 dark:text-white">Velocity</span>: See if you are improving compared to the previous day.
+                                        <br />
+                                        • <span className="font-semibold text-slate-900 dark:text-white">Chart</span>: Visualize your 30-day trend on your Profile.
                                     </p>
                                 </div>
                             </div>

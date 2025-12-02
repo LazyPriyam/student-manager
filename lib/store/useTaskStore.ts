@@ -16,6 +16,8 @@ interface TaskState {
     moveTask: (id: string, toQuadrant: Quadrant) => Promise<void>;
     deleteTask: (id: string) => Promise<void>;
     fetchTasks: () => Promise<void>;
+    completeTask: (id: string) => Promise<void>;
+    history: { date: string; count: number }[];
     resetData: () => Promise<void>;
 }
 
@@ -23,6 +25,7 @@ import { supabase } from '@/lib/supabase/client';
 
 export const useTaskStore = create<TaskState>((set, get) => ({
     tasks: [], // Start empty
+    history: [],
 
     fetchTasks: async () => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -62,6 +65,23 @@ export const useTaskStore = create<TaskState>((set, get) => ({
                     dueDate: t.due_date
                 }))
             });
+        }
+
+        // Fetch History
+        const { data: historyData } = await supabase
+            .from('task_history')
+            .select('completed_at')
+            .eq('user_id', user.id);
+
+        if (historyData) {
+            const historyMap = new Map<string, number>();
+            historyData.forEach(h => {
+                const date = new Date(h.completed_at).toISOString().split('T')[0];
+                historyMap.set(date, (historyMap.get(date) || 0) + 1);
+            });
+
+            const history = Array.from(historyMap.entries()).map(([date, count]) => ({ date, count }));
+            set({ history });
         }
     },
 
@@ -118,11 +138,47 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         }
     },
 
+    completeTask: async (id) => {
+        const task = get().tasks.find(t => t.id === id);
+        if (!task) return;
+
+        // Optimistic update
+        set((state) => {
+            const today = new Date().toISOString().split('T')[0];
+            const newHistory = [...state.history];
+            const existingEntry = newHistory.find(h => h.date === today);
+            if (existingEntry) {
+                existingEntry.count++;
+            } else {
+                newHistory.push({ date: today, count: 1 });
+            }
+            return {
+                tasks: state.tasks.filter(t => t.id !== id),
+                history: newHistory
+            };
+        });
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            // Insert into history
+            await supabase.from('task_history').insert({
+                user_id: user.id,
+                title: task.title,
+                priority: `q${task.quadrant}`,
+                completed_at: new Date().toISOString()
+            });
+
+            // Delete from active tasks
+            await supabase.from('tasks').delete().eq('id', id);
+        }
+    },
+
     resetData: async () => {
-        set({ tasks: [] });
+        set({ tasks: [], history: [] });
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
             await supabase.from('tasks').delete().eq('user_id', user.id);
+            await supabase.from('task_history').delete().eq('user_id', user.id);
         }
     },
 }));
