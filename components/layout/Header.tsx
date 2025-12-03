@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShoppingBag, User, LogIn, LogOut, BookOpen, Menu, X, Target } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { soundManager } from '@/lib/sound';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { useUserStore } from '@/lib/store/useUserStore';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export function Header() {
@@ -13,6 +15,7 @@ export function Header() {
     const router = useRouter();
     const [user, setUser] = useState<any>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { activeSound } = useUserStore();
 
     useEffect(() => {
         // Check active session
@@ -47,21 +50,36 @@ export function Header() {
     const NavItems = () => (
         <>
             <Link href="/shop" className="w-full md:w-auto">
-                <Button variant="ghost" size="sm" className={`w-full justify-start md:justify-center ${pathname === '/shop' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onMouseEnter={() => soundManager.playHover(activeSound)}
+                    className={`w-full justify-start md:justify-center ${pathname === '/shop' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
+                >
                     <ShoppingBag className="w-4 h-4 mr-2 text-amber-600" />
                     Shop
                 </Button>
             </Link>
 
             <Link href="/journal" className="w-full md:w-auto">
-                <Button variant="ghost" size="sm" className={`w-full justify-start md:justify-center ${pathname === '/journal' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onMouseEnter={() => soundManager.playHover(activeSound)}
+                    className={`w-full justify-start md:justify-center ${pathname === '/journal' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
+                >
                     <BookOpen className="w-4 h-4 mr-2 text-blue-500" />
                     Journal
                 </Button>
             </Link>
 
             <Link href="/goals" className="w-full md:w-auto">
-                <Button variant="ghost" size="sm" className={`w-full justify-start md:justify-center ${pathname === '/goals' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onMouseEnter={() => soundManager.playHover(activeSound)}
+                    className={`w-full justify-start md:justify-center ${pathname === '/goals' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
+                >
                     <Target className="w-4 h-4 mr-2 text-red-500" />
                     Goals
                 </Button>
@@ -70,19 +88,35 @@ export function Header() {
             {user ? (
                 <>
                     <Link href="/profile" className="w-full md:w-auto">
-                        <Button variant="ghost" size="sm" className={`w-full justify-start md:justify-center ${pathname === '/profile' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onMouseEnter={() => soundManager.playHover(activeSound)}
+                            className={`w-full justify-start md:justify-center ${pathname === '/profile' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
+                        >
                             <User className="w-4 h-4 mr-2" />
                             Profile
                         </Button>
                     </Link>
-                    <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full justify-start md:justify-center">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleLogout}
+                        onMouseEnter={() => soundManager.playHover(activeSound)}
+                        className="w-full justify-start md:justify-center"
+                    >
                         <LogOut className="w-4 h-4 mr-2" />
                         Logout
                     </Button>
                 </>
             ) : (
                 <Link href="/login" className="w-full md:w-auto">
-                    <Button variant="default" size="sm" className="w-full justify-start md:justify-center">
+                    <Button
+                        variant="default"
+                        size="sm"
+                        onMouseEnter={() => soundManager.playHover()}
+                        className="w-full justify-start md:justify-center"
+                    >
                         <LogIn className="w-4 h-4 mr-2" />
                         Login
                     </Button>

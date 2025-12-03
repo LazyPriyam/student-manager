@@ -3,7 +3,8 @@ import { Habit, useHabitStore } from '@/lib/store/useHabitStore';
 import { Check, Trash2, Flame, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useUserStore } from '@/lib/store/useUserStore';
-
+import { motion, AnimatePresence } from 'framer-motion';
+import { soundManager } from '@/lib/sound';
 
 interface HabitItemProps {
     habit: Habit;
@@ -11,7 +12,7 @@ interface HabitItemProps {
 
 export function HabitItem({ habit }: HabitItemProps) {
     const { toggleHabitCompletion, deleteHabit, updateHabit } = useHabitStore();
-    const { addXp, addPoints } = useUserStore();
+    const { addXp, addPoints, activeSound } = useUserStore();
 
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(habit.title);
@@ -50,15 +51,30 @@ export function HabitItem({ habit }: HabitItemProps) {
     return (
         <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-blue-400 dark:hover:border-blue-500 transition-all">
             <div className="flex items-center gap-4 flex-1">
-                <button
-                    onClick={handleToggle}
+                <motion.button
+                    whileTap={{ scale: 0.8 }}
+                    animate={{ scale: isCompletedToday ? 1.1 : 1 }}
+                    onClick={() => {
+                        soundManager.playToggle(!isCompletedToday, activeSound);
+                        handleToggle();
+                    }}
                     className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors ${isCompletedToday
                         ? 'bg-green-500 border-green-500 text-white'
                         : 'border-slate-300 dark:border-slate-600 hover:border-green-500'
                         }`}
                 >
-                    {isCompletedToday && <Check size={16} />}
-                </button>
+                    <AnimatePresence>
+                        {isCompletedToday && (
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 0 }}
+                            >
+                                <Check size={16} />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.button>
 
                 <div className="flex-1">
                     {isEditing ? (

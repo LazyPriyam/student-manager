@@ -106,6 +106,45 @@ class SoundManager {
                 break;
         }
     }
+
+    playHover(pack: string = 'sound-chime') {
+        // Very short, high freq tick
+        switch (pack) {
+            case 'sound-8bit':
+                this.playTone(1200, 'square', 0.01);
+                break;
+            default:
+                this.playTone(2000, 'sine', 0.01);
+                break;
+        }
+    }
+
+    playToggle(isOn: boolean, pack: string = 'sound-chime') {
+        // Two-tone: Up for ON, Down for OFF
+        if (isOn) {
+            switch (pack) {
+                case 'sound-8bit':
+                    this.playTone(440, 'square', 0.1);
+                    this.playTone(880, 'square', 0.1, 0.1);
+                    break;
+                default:
+                    this.playTone(600, 'sine', 0.1);
+                    this.playTone(800, 'sine', 0.1, 0.1);
+                    break;
+            }
+        } else {
+            switch (pack) {
+                case 'sound-8bit':
+                    this.playTone(880, 'square', 0.1);
+                    this.playTone(440, 'square', 0.1, 0.1);
+                    break;
+                default:
+                    this.playTone(800, 'sine', 0.1);
+                    this.playTone(600, 'sine', 0.1, 0.1);
+                    break;
+            }
+        }
+    }
 }
 
 export const soundManager = new SoundManager();

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useTaskStore, Task } from '@/lib/store/useTaskStore';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { soundManager } from '@/lib/sound';
 import { GripVertical, Check, Trash2, Pencil, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -29,6 +31,7 @@ export function SortableTask({ task }: SortableTaskProps) {
     };
 
     const { completeTask, deleteTask, updateTask } = useTaskStore();
+    const { activeSound } = useUserStore();
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(task.title);
 
@@ -49,6 +52,7 @@ export function SortableTask({ task }: SortableTaskProps) {
             ticks: 100
         });
 
+        soundManager.playToggle(true, activeSound);
         completeTask(task.id);
     };
 
