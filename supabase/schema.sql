@@ -102,6 +102,7 @@ create table habits (
   streak integer default 0,
   completed_dates text[] default array[]::text[],
   xp_reward integer default 10,
+  position integer default 0,
   start_date timestamp with time zone,
   end_date timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -114,6 +115,7 @@ create table tasks (
   title text not null,
   priority text default 'q1', -- q1, q2, q3, q4
   completed boolean default false,
+  position integer default 0,
   due_date timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

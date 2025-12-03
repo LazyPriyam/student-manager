@@ -8,6 +8,7 @@ export interface Task {
     title: string;
     quadrant: Quadrant;
     dueDate?: string;
+    position?: number;
 }
 
 interface TaskState {
@@ -15,6 +16,8 @@ interface TaskState {
     addTask: (title: string, quadrant: Quadrant) => Promise<void>;
     moveTask: (id: string, toQuadrant: Quadrant) => Promise<void>;
     deleteTask: (id: string) => Promise<void>;
+    updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
+    reorderTasks: (activeId: string, overId: string) => Promise<void>;
     fetchTasks: () => Promise<void>;
     completeTask: (id: string) => Promise<void>;
     history: { date: string; count: number }[];
@@ -135,6 +138,59 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
             await supabase.from('tasks').delete().eq('id', id);
+        }
+    },
+
+    updateTask: async (id, updates) => {
+        set((state) => ({
+            tasks: state.tasks.map(t => t.id === id ? { ...t, ...updates } : t)
+        }));
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const dbUpdates: any = {};
+            if (updates.title) dbUpdates.title = updates.title;
+            if (updates.quadrant) dbUpdates.priority = `q${updates.quadrant}`;
+
+            if (Object.keys(dbUpdates).length > 0) {
+                await supabase.from('tasks').update(dbUpdates).eq('id', id);
+            }
+        }
+    },
+
+    reorderTasks: async (activeId, overId) => {
+        set((state) => {
+            const oldIndex = state.tasks.findIndex((t) => t.id === activeId);
+            const newIndex = state.tasks.findIndex((t) => t.id === overId);
+
+            if (oldIndex === -1 || newIndex === -1) return state;
+
+            const newTasks = [...state.tasks];
+            const [movedTask] = newTasks.splice(oldIndex, 1);
+            newTasks.splice(newIndex, 0, movedTask);
+
+            return { tasks: newTasks };
+        });
+
+        // Sync positions to DB (debounced or simple loop)
+        const { tasks } = get();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+            // We only need to update the positions of the tasks that changed, 
+            // but for simplicity and correctness in this prototype, we can update all or just the affected range.
+            // A better approach for DB is to just update the 'position' field.
+            // For now, let's just assume we update the position based on index.
+            // Note: This might be heavy if we have many tasks.
+
+            const updates = tasks.map((t, index) => ({
+                id: t.id,
+                user_id: user.id,
+                title: t.title,
+                position: index
+            }));
+
+            await supabase.from('tasks').upsert(updates, { onConflict: 'id' });
         }
     },
 

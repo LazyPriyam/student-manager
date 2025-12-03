@@ -9,6 +9,7 @@ export interface Habit {
     xpReward: number;
     startDate?: string;
     endDate?: string;
+    position?: number;
 }
 
 interface HabitState {
@@ -16,6 +17,8 @@ interface HabitState {
     addHabit: (title: string, xpReward: number, startDate?: string, endDate?: string) => void;
     toggleHabitCompletion: (id: string, date: string) => void;
     deleteHabit: (id: string) => void;
+    updateHabit: (id: string, updates: Partial<Habit>) => Promise<void>;
+    reorderHabits: (activeId: string, overId: string) => Promise<void>;
     fetchHabits: () => Promise<void>;
     checkStreaks: () => void;
     resetData: () => Promise<void>;
@@ -114,6 +117,54 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
             await supabase.from('habits').delete().eq('id', id);
+        }
+    },
+
+    updateHabit: async (id, updates) => {
+        set((state) => ({
+            habits: state.habits.map(h => h.id === id ? { ...h, ...updates } : h)
+        }));
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const dbUpdates: any = {};
+            if (updates.title) dbUpdates.title = updates.title;
+            if (updates.xpReward) dbUpdates.xp_reward = updates.xpReward;
+            if (updates.startDate) dbUpdates.start_date = updates.startDate;
+            if (updates.endDate) dbUpdates.end_date = updates.endDate;
+
+            if (Object.keys(dbUpdates).length > 0) {
+                await supabase.from('habits').update(dbUpdates).eq('id', id);
+            }
+        }
+    },
+
+    reorderHabits: async (activeId, overId) => {
+        set((state) => {
+            const oldIndex = state.habits.findIndex((h) => h.id === activeId);
+            const newIndex = state.habits.findIndex((h) => h.id === overId);
+
+            if (oldIndex === -1 || newIndex === -1) return state;
+
+            const newHabits = [...state.habits];
+            const [movedHabit] = newHabits.splice(oldIndex, 1);
+            newHabits.splice(newIndex, 0, movedHabit);
+
+            return { habits: newHabits };
+        });
+
+        const { habits } = get();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+            const updates = habits.map((h, index) => ({
+                id: h.id,
+                user_id: user.id,
+                title: h.title,
+                position: index
+            }));
+
+            await supabase.from('habits').upsert(updates, { onConflict: 'id' });
         }
     },
 

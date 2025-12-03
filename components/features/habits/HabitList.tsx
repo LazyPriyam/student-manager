@@ -2,16 +2,40 @@
 
 import { useState } from 'react';
 import { useHabitStore } from '@/lib/store/useHabitStore';
-import { HabitItem } from './HabitItem';
+
 import { Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableHabitItem } from './SortableHabitItem';
+
 export function HabitList() {
-    const { habits, addHabit } = useHabitStore();
+    const { habits, addHabit, reorderHabits } = useHabitStore();
     const [newHabitTitle, setNewHabitTitle] = useState('');
     const [xpReward, setXpReward] = useState(10);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const handleAddHabit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,6 +46,17 @@ export function HabitList() {
         setStartDate('');
         setEndDate('');
     };
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            reorderHabits(active.id as string, over.id as string);
+        }
+    };
+
+    // Sort habits by position before rendering
+    const sortedHabits = [...habits].sort((a, b) => (a.position || 0) - (b.position || 0));
 
     return (
         <div className="w-full max-w-2xl mx-auto space-y-6">
@@ -74,30 +109,40 @@ export function HabitList() {
                 </div>
             </form>
 
-            <div className="space-y-3">
-                <AnimatePresence mode='popLayout'>
-                    {habits.map((habit) => (
-                        <motion.div
-                            key={habit.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            layout
-                        >
-                            <HabitItem habit={habit} />
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-                {habits.length === 0 && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-center py-12 text-slate-400 dark:text-slate-600 italic"
-                    >
-                        No habits yet. Start building your streak!
-                    </motion.div>
-                )}
-            </div>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+            >
+                <SortableContext
+                    items={sortedHabits.map(h => h.id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    <div className="space-y-3">
+                        <AnimatePresence mode='popLayout'>
+                            {sortedHabits.map((habit) => (
+                                <motion.div
+                                    key={habit.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                >
+                                    <SortableHabitItem habit={habit} />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                        {habits.length === 0 && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-center py-12 text-slate-400 dark:text-slate-600 italic"
+                            >
+                                No habits yet. Start building your streak!
+                            </motion.div>
+                        )}
+                    </div>
+                </SortableContext>
+            </DndContext>
         </div>
     );
 }

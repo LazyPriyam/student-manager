@@ -20,7 +20,7 @@ import { SortableTask } from './SortableTask';
 
 export function EisenhowerMatrix() {
     const [newTaskTitle, setNewTaskTitle] = useState('');
-    const { tasks, moveTask, addTask } = useTaskStore();
+    const { tasks, moveTask, addTask, reorderTasks } = useTaskStore();
     const [activeId, setActiveId] = useState<string | null>(null);
 
     const handleAddTask = (e: React.FormEvent) => {
@@ -37,7 +37,10 @@ export function EisenhowerMatrix() {
         })
     );
 
-    const getTasksByQuadrant = (q: QuadrantType) => tasks.filter(t => t.quadrant === q);
+    const getTasksByQuadrant = (q: QuadrantType) =>
+        tasks
+            .filter(t => t.quadrant === q)
+            .sort((a, b) => (a.position || 0) - (b.position || 0));
     const activeTask = tasks.find(t => t.id === activeId);
 
     const handleDragStart = (event: DragStartEvent) => {
@@ -66,7 +69,6 @@ export function EisenhowerMatrix() {
         if (!activeTask) return;
 
         // Determine target quadrant
-        // If dropped on a Quadrant container (id is "1", "2", "3", "4")
         let targetQuadrant: QuadrantType | null = null;
 
         if (['1', '2', '3', '4'].includes(over.id as string)) {
@@ -81,6 +83,9 @@ export function EisenhowerMatrix() {
 
         if (targetQuadrant && activeTask.quadrant !== targetQuadrant) {
             moveTask(activeTask.id, targetQuadrant);
+        } else if (active.id !== over.id) {
+            // Reordering within the same quadrant
+            reorderTasks(active.id as string, over.id as string);
         }
 
         setActiveId(null);

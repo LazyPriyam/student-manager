@@ -1,9 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useTaskStore, Task } from '@/lib/store/useTaskStore';
-import { GripVertical, Check, Trash2 } from 'lucide-react';
+import { GripVertical, Check, Trash2, Pencil, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
@@ -27,7 +28,9 @@ export function SortableTask({ task }: SortableTaskProps) {
         opacity: isDragging ? 0.5 : 1,
     };
 
-    const { completeTask, deleteTask } = useTaskStore();
+    const { completeTask, deleteTask, updateTask } = useTaskStore();
+    const [isEditing, setIsEditing] = useState(false);
+    const [editTitle, setEditTitle] = useState(task.title);
 
     const handleComplete = (e: React.MouseEvent) => {
         // Confetti burst at click position
@@ -49,6 +52,21 @@ export function SortableTask({ task }: SortableTaskProps) {
         completeTask(task.id);
     };
 
+    const handleSave = () => {
+        if (editTitle.trim()) {
+            updateTask(task.id, { title: editTitle });
+            setIsEditing(false);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') handleSave();
+        if (e.key === 'Escape') {
+            setEditTitle(task.title);
+            setIsEditing(false);
+        }
+    };
+
     return (
         <div
             ref={setNodeRef}
@@ -62,10 +80,44 @@ export function SortableTask({ task }: SortableTaskProps) {
             >
                 <GripVertical size={16} />
             </button>
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200 flex-1">
-                {task.title}
-            </span>
+
+            <div className="flex-1">
+                {isEditing ? (
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            autoFocus
+                            className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
+                        />
+                        <button onClick={handleSave} className="text-green-600 hover:bg-green-50 p-1 rounded">
+                            <Check size={16} />
+                        </button>
+                        <button onClick={() => { setIsEditing(false); setEditTitle(task.title); }} className="text-red-500 hover:bg-red-50 p-1 rounded">
+                            <X size={16} />
+                        </button>
+                    </div>
+                ) : (
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200 block">
+                        {task.title}
+                    </span>
+                )}
+            </div>
+
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {!isEditing && (
+                    <motion.button
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setIsEditing(true)}
+                        className="p-1 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                        title="Edit Task"
+                    >
+                        <Pencil size={16} />
+                    </motion.button>
+                )}
                 <motion.button
                     whileHover={{ scale: 1.2, rotate: 10 }}
                     whileTap={{ scale: 0.9 }}
