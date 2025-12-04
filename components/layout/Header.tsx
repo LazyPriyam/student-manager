@@ -114,7 +114,7 @@ export function Header() {
                     <Button
                         variant="default"
                         size="sm"
-                        onMouseEnter={() => soundManager.playHover()}
+                        onMouseEnter={() => soundManager.playHover(activeSound)}
                         className="w-full justify-start md:justify-center"
                     >
                         <LogIn className="w-4 h-4 mr-2" />

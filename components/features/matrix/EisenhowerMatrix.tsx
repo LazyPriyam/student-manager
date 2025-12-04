@@ -17,15 +17,19 @@ import { useState } from 'react';
 import { useTaskStore, Quadrant as QuadrantType } from '@/lib/store/useTaskStore';
 import { Quadrant } from './Quadrant';
 import { SortableTask } from './SortableTask';
+import { soundManager } from '@/lib/sound';
+import { useUserStore } from '@/lib/store/useUserStore';
 
 export function EisenhowerMatrix() {
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const { tasks, moveTask, addTask, reorderTasks } = useTaskStore();
+    const { activeSound } = useUserStore();
     const [activeId, setActiveId] = useState<string | null>(null);
 
     const handleAddTask = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newTaskTitle.trim()) return;
+        soundManager.playClick(activeSound);
         addTask(newTaskTitle, 1); // Default to Quadrant 1
         setNewTaskTitle('');
     };

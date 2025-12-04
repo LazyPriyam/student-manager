@@ -7,6 +7,7 @@ import { Reward, RewardType } from '@/lib/data/rewards';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Check, ShoppingCart, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { soundManager } from '@/lib/sound';
 
 export function ShopList() {
     const { items, inventory, purchaseItem } = useShopStore();
@@ -39,7 +40,10 @@ export function ShopList() {
     const handleEquip = (item: Reward) => {
         switch (item.type) {
             case 'theme': setTheme(item.id); break;
-            case 'sound': setSound(item.id); break;
+            case 'sound':
+                setSound(item.id);
+                soundManager.playStart(item.id); // Preview sound
+                break;
             case 'effect': setEffect(item.id); break;
             case 'title': setTitle(item.id); break;
         }
@@ -99,7 +103,16 @@ export function ShopList() {
                                 ) : (
                                     <>
                                         <div className="flex justify-between items-start mb-4">
-                                            <div className="text-3xl">{item.icon}</div>
+                                            <div
+                                                className="text-3xl cursor-pointer hover:scale-110 transition-transform"
+                                                onClick={() => {
+                                                    if (item.type === 'sound') {
+                                                        soundManager.playStart(item.id);
+                                                    }
+                                                }}
+                                            >
+                                                {item.icon}
+                                            </div>
                                             {isLocked && <Lock className="w-4 h-4 text-slate-400" />}
                                             {isOwned && !equipped && <Check className="w-4 h-4 text-green-500" />}
                                         </div>

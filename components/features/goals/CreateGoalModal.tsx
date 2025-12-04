@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Trophy } from 'lucide-react';
 import { useGoalStore, Difficulty } from '@/lib/store/useGoalStore';
 import { useUserStore } from '@/lib/store/useUserStore';
+import { soundManager } from '@/lib/sound';
 
 interface CreateGoalModalProps {
     isOpen: boolean;
@@ -18,7 +19,7 @@ interface CreateGoalModalProps {
 
 export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
     const { addGoal } = useGoalStore();
-    const { points } = useUserStore();
+    const { points, activeSound } = useUserStore();
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -29,6 +30,7 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
     const [milestones, setMilestones] = useState<string[]>(['']);
 
     const handleAddMilestone = () => {
+        soundManager.playClick(activeSound);
         setMilestones([...milestones, '']);
     };
 
@@ -42,6 +44,7 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
         e.preventDefault();
         if (!title || !endDate) return;
 
+        soundManager.playComplete(activeSound);
         await addGoal({
             title,
             description,
@@ -80,7 +83,7 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
                             <div className="p-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">New Goal</h2>
-                                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                    <button onClick={() => { soundManager.playClick(activeSound); onClose(); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                                         <X size={24} />
                                     </button>
                                 </div>

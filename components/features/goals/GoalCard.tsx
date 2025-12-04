@@ -5,6 +5,8 @@ import { Goal, useGoalStore } from '@/lib/store/useGoalStore';
 import { motion } from 'framer-motion';
 import { Calendar, CheckCircle, Circle, Trophy, AlertTriangle, Clock, Pencil, Trash2, X, Check } from 'lucide-react';
 import { differenceInDays, format } from 'date-fns';
+import { soundManager } from '@/lib/sound';
+import { useUserStore } from '@/lib/store/useUserStore';
 
 interface GoalCardProps {
     goal: Goal;
@@ -12,6 +14,7 @@ interface GoalCardProps {
 
 export function GoalCard({ goal }: GoalCardProps) {
     const { toggleMilestone, deleteGoal, updateMilestone, deleteMilestone } = useGoalStore();
+    const { activeSound } = useUserStore();
     const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
     const [editTitle, setEditTitle] = useState('');
 
@@ -25,6 +28,16 @@ export function GoalCard({ goal }: GoalCardProps) {
             await updateMilestone(goalId, milestoneId, editTitle);
             setEditingMilestoneId(null);
         }
+    };
+
+    const handleDeleteGoal = () => {
+        soundManager.playClick(activeSound);
+        deleteGoal(goal.id);
+    };
+
+    const handleToggleMilestone = (milestoneId: string, isCompleted: boolean) => {
+        soundManager.playToggle(!isCompleted, activeSound);
+        toggleMilestone(goal.id, milestoneId);
     };
 
     const totalDays = differenceInDays(new Date(goal.endDate), new Date(goal.startDate));
@@ -129,7 +142,7 @@ export function GoalCard({ goal }: GoalCardProps) {
                         ) : (
                             <>
                                 <button
-                                    onClick={() => toggleMilestone(goal.id, milestone.id)}
+                                    onClick={() => handleToggleMilestone(milestone.id, milestone.isCompleted)}
                                     disabled={goal.status !== 'active'}
                                     className="flex items-center gap-3 text-left flex-1"
                                 >
@@ -151,7 +164,10 @@ export function GoalCard({ goal }: GoalCardProps) {
                                             <Pencil size={14} />
                                         </button>
                                         <button
-                                            onClick={() => deleteMilestone(goal.id, milestone.id)}
+                                            onClick={() => {
+                                                soundManager.playClick(activeSound);
+                                                deleteMilestone(goal.id, milestone.id);
+                                            }}
                                             className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                                             title="Delete Milestone"
                                         >
@@ -168,7 +184,7 @@ export function GoalCard({ goal }: GoalCardProps) {
             {/* Actions */}
             <div className="mt-6 flex justify-end">
                 <button
-                    onClick={() => deleteGoal(goal.id)}
+                    onClick={handleDeleteGoal}
                     className="text-xs text-slate-400 hover:text-red-500 transition-colors"
                 >
                     Delete Goal

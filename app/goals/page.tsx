@@ -5,13 +5,21 @@ import { useGoalStore } from '@/lib/store/useGoalStore';
 import { GoalCard } from '@/components/features/goals/GoalCard';
 import { CreateGoalModal } from '@/components/features/goals/CreateGoalModal';
 import { Plus, Target } from 'lucide-react';
+import { soundManager } from '@/lib/sound';
+import { useUserStore } from '@/lib/store/useUserStore';
 
 export default function GoalsPage() {
     const { goals } = useGoalStore();
+    const { activeSound } = useUserStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const activeGoals = goals.filter(g => g.status === 'active');
     const completedGoals = goals.filter(g => g.status === 'completed');
+
+    const handleOpenModal = () => {
+        soundManager.playClick(activeSound);
+        setIsModalOpen(true);
+    };
 
     return (
         <main className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8 pb-24">
@@ -28,7 +36,7 @@ export default function GoalsPage() {
                         </p>
                     </div>
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={handleOpenModal}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg flex items-center gap-2 transition-colors shadow-lg shadow-blue-600/20"
                     >
                         <Plus size={20} />
@@ -52,7 +60,7 @@ export default function GoalsPage() {
                                 "A goal without a plan is just a wish." Start your journey by creating a new goal today.
                             </p>
                             <button
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={handleOpenModal}
                                 className="text-blue-600 font-bold hover:underline"
                             >
                                 Create your first goal
