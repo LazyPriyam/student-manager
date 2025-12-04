@@ -16,11 +16,9 @@ import { PowerupList } from '@/components/features/profile/PowerupList';
 
 export default function ProfilePage() {
     const { level, xp, points, activeTitle } = useUserStore();
-    const { totalFocusMinutes } = useTimerStore();
+    const { totalFocusMinutes, maxDailyFocus } = useTimerStore();
 
     const totalHours = Math.floor(totalFocusMinutes / 60);
-    // Mock data for "All Time High" - in a real app this would come from analytics store
-    const maxDailyFocus = 120;
 
     const getLevelStyles = (level: number) => {
         if (level >= 100) return "border-cyan-400 bg-cyan-50 dark:bg-cyan-900/20 shadow-[0_0_20px_rgba(34,211,238,0.5)]";

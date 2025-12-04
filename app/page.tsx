@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Timer } from '@/components/features/timer/Timer';
+import { QuoteCard } from '@/components/features/dashboard/QuoteCard';
 import { EisenhowerMatrix } from '@/components/features/matrix/EisenhowerMatrix';
 import { HabitList } from '@/components/features/habits/HabitList';
 import { ShoppingBag, LayoutGrid, CheckSquare, User } from 'lucide-react';
@@ -20,6 +21,9 @@ export default function Home() {
         {/* Timer Section */}
         <section className="flex flex-col items-center gap-8">
           <Timer />
+          <div className="w-full max-w-2xl">
+            <QuoteCard />
+          </div>
         </section>
 
 

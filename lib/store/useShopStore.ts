@@ -142,6 +142,17 @@ export const useShopStore = create<ShopState>((set, get) => ({
                 item_id: itemId,
                 expires_at: expiresAt
             });
+        } else {
+            // Handle Instant Effects
+            if (itemId === 'power-jackpot') {
+                useUserStore.getState().addPoints(1000);
+            }
+            if (itemId === 'power-quote') {
+                // Trigger quote refresh (we'll implement this in useUserStore or just rely on the toast for now)
+                // For now, let's just assume the Quote component will listen to a change, 
+                // or we can add a 'rerollQuote' action to userStore.
+                useUserStore.getState().rerollQuote();
+            }
         }
     },
 

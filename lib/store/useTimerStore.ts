@@ -15,6 +15,7 @@ interface TimerState {
     sessionPlan: ('focus' | 'break' | 'long-break')[];
     history: SessionLog[];
     totalFocusMinutes: number;
+    maxDailyFocus: number;
 
     // Config
     focusDuration: number;
@@ -49,6 +50,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     longBreakDuration: 15,
 
     totalFocusMinutes: 0,
+    maxDailyFocus: 0,
 
     syncWithSupabase: async () => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -117,9 +119,18 @@ export const useTimerStore = create<TimerState>((set, get) => ({
 
             const totalMinutes = history.reduce((acc, curr) => acc + curr.duration, 0);
 
+            // Calculate Max Daily Focus
+            const dailyTotals = history.reduce((acc, session) => {
+                const date = session.date.split('T')[0];
+                acc[date] = (acc[date] || 0) + session.duration;
+                return acc;
+            }, {} as Record<string, number>);
+            const maxDaily = Math.max(0, ...Object.values(dailyTotals));
+
             set({
                 history,
-                totalFocusMinutes: totalMinutes
+                totalFocusMinutes: totalMinutes,
+                maxDailyFocus: maxDaily
             });
         }
     },
@@ -206,10 +217,24 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     }),
 
     logSession: async (duration) => {
-        set((state) => ({
-            history: [...state.history, { date: new Date().toISOString(), duration }],
-            totalFocusMinutes: state.totalFocusMinutes + duration
-        }));
+        set((state) => {
+            const newHistory = [...state.history, { date: new Date().toISOString(), duration }];
+            const newTotal = state.totalFocusMinutes + duration;
+
+            // Recalculate Max Daily Focus
+            const dailyTotals = newHistory.reduce((acc, session) => {
+                const date = session.date.split('T')[0];
+                acc[date] = (acc[date] || 0) + session.duration;
+                return acc;
+            }, {} as Record<string, number>);
+            const maxDaily = Math.max(0, ...Object.values(dailyTotals));
+
+            return {
+                history: newHistory,
+                totalFocusMinutes: newTotal,
+                maxDailyFocus: maxDaily
+            };
+        });
 
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -231,6 +256,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
             sessionPlan: [],
             history: [],
             totalFocusMinutes: 0,
+            maxDailyFocus: 0,
             focusDuration: 25,
             breakDuration: 5,
             longBreakDuration: 15

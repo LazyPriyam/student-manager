@@ -13,10 +13,12 @@ interface UserState {
     activeEffect: string;
     activeTitle: string;
     isInitialized: boolean;
+    quoteIndex: number;
 
     addXp: (amount: number) => void;
     addPoints: (amount: number) => void;
     spendPoints: (amount: number) => void;
+    rerollQuote: () => void;
 
     // Equip actions
     setTheme: (themeId: string) => void;
@@ -38,6 +40,9 @@ export const useUserStore = create<UserState>((set) => ({
     activeEffect: 'fx-confetti',
     activeTitle: 'title-novice',
     isInitialized: false,
+    quoteIndex: 0,
+
+    rerollQuote: () => set(state => ({ quoteIndex: state.quoteIndex + 1 })),
 
     syncWithSupabase: async () => {
         const { data: { user } } = await supabase.auth.getUser();
