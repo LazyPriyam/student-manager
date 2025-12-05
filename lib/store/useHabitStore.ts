@@ -43,7 +43,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
                 habits: habits.map(h => ({
                     id: h.id,
                     title: h.title,
-                    streak: h.streak,
+                    streak: calculateStreak(h.completed_dates || []), // Recalculate on load to ensure accuracy
                     completedDates: h.completed_dates || [],
                     xpReward: h.xp_reward,
                     startDate: h.start_date,
