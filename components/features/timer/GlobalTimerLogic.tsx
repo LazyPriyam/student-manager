@@ -1,10 +1,16 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTimerStore } from '@/lib/store/useTimerStore';
 import { useUserStore } from '@/lib/store/useUserStore';
+import { useGoalStore } from '@/lib/store/useGoalStore';
+import { useTaskStore } from '@/lib/store/useTaskStore';
+import { useHabitStore } from '@/lib/store/useHabitStore';
 import confetti from 'canvas-confetti';
 import { soundManager } from '@/lib/sound';
+import { LevelUpModal } from '@/components/features/gamification/LevelUpModal';
+import { DailyBonusModal } from '@/components/features/gamification/DailyBonusModal';
+import { DayStartWizard } from '@/components/features/onboarding/DayStartWizard';
 
 export function GlobalTimerLogic() {
     const {
@@ -12,7 +18,11 @@ export function GlobalTimerLogic() {
         focusDuration, breakDuration,
         setTimeLeft, setIsActive, setMode, advanceSession, logSession
     } = useTimerStore();
-    const { addXp, activeSound, activeEffect } = useUserStore();
+    const { addXp, activeSound, activeEffect, level, isInitialized } = useUserStore();
+
+    const [showDailyBonus, setShowDailyBonus] = useState(false);
+    const prevLevelRef = useRef<number | null>(null);
+    const isInitializedRef = useRef(false);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -108,7 +118,22 @@ export function GlobalTimerLogic() {
                 }
             }, 1000);
 
-        } else if (timeLeft <= 0 && isActive) {
+        }
+
+        if (isInitialized && !isInitializedRef.current) {
+            isInitializedRef.current = true;
+            prevLevelRef.current = level;
+
+            // Check for daily bonus on init
+            useUserStore.getState().checkDailyBonus().then((hasBonus) => {
+                if (hasBonus) {
+                    setShowDailyBonus(true);
+                    soundManager.playComplete(activeSound);
+                }
+            });
+        }
+
+        if (timeLeft <= 0 && isActive) {
             setIsActive(false);
             // Timer finished!
             soundManager.playComplete(activeSound);
@@ -157,7 +182,16 @@ export function GlobalTimerLogic() {
         }
 
         return () => clearInterval(interval);
-    }, [isActive, timeLeft, mode, sessionPlan, focusDuration, breakDuration, setTimeLeft, setIsActive, setMode, addXp, advanceSession, logSession, activeSound, activeEffect]);
+    }, [isActive, timeLeft, mode, sessionPlan, focusDuration, breakDuration, setTimeLeft, setIsActive, setMode, addXp, advanceSession, logSession, activeSound, activeEffect, level, isInitialized]);
 
-    return null; // Logic only, no UI
+    return (
+        <>
+            <LevelUpModal />
+            <DailyBonusModal
+                isOpen={showDailyBonus}
+                onClose={() => setShowDailyBonus(false)}
+            />
+            <DayStartWizard />
+        </>
+    );
 }

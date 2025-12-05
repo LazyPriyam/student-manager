@@ -153,6 +153,7 @@ export const REWARDS: Reward[] = [
     { id: 'coupon-dream', name: 'Dream Trip', description: 'Once in a lifetime.', type: 'coupon', unlockLevel: 75, cost: 20000, icon: '🌍', duration: 0 },
 
     // --- POWERUPS ---
+    { id: 'power-freeze', name: 'Streak Freeze', description: 'Missed a day? Save your streak!', type: 'powerup', unlockLevel: 1, cost: 500, icon: '❄️', duration: 0 },
     { id: 'power-xp1', name: 'XP Potion (1.1x)', description: '+10% XP for 1h.', type: 'powerup', unlockLevel: 2, cost: 100, icon: '🧪', duration: 60 },
     { id: 'power-quote', name: 'Reroll Quote', description: 'New inspiration.', type: 'powerup', unlockLevel: 4, cost: 20, icon: '🎲', duration: 0 },
     { id: 'power-xp2', name: 'Double XP Potion', description: '2x XP for 1h.', type: 'powerup', unlockLevel: 10, cost: 500, icon: '⚗️', duration: 60 },

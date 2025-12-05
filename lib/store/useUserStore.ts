@@ -14,11 +14,13 @@ interface UserState {
     activeTitle: string;
     isInitialized: boolean;
     quoteIndex: number;
+    lastLoginDate?: string;
 
     addXp: (amount: number) => void;
     addPoints: (amount: number) => void;
     spendPoints: (amount: number) => void;
     rerollQuote: () => void;
+    checkDailyBonus: () => Promise<boolean>;
 
     // Equip actions
     setTheme: (themeId: string) => void;
@@ -30,7 +32,7 @@ interface UserState {
     resetData: () => Promise<void>;
 }
 
-export const useUserStore = create<UserState>((set) => ({
+export const useUserStore = create<UserState>((set, get) => ({
     xp: 0,
     level: 1,
     points: 0,
@@ -41,6 +43,7 @@ export const useUserStore = create<UserState>((set) => ({
     activeTitle: 'title-novice',
     isInitialized: false,
     quoteIndex: 0,
+    lastLoginDate: undefined,
 
     rerollQuote: () => set(state => ({ quoteIndex: state.quoteIndex + 1 })),
 
@@ -66,6 +69,7 @@ export const useUserStore = create<UserState>((set) => ({
                 activeSound: profile.active_sound,
                 activeEffect: profile.active_effect,
                 activeTitle: profile.active_title,
+                lastLoginDate: profile.last_login_date,
                 isInitialized: true
             });
         } else {
@@ -220,5 +224,46 @@ export const useUserStore = create<UserState>((set) => ({
                 active_title: 'title-novice',
             }).eq('id', user.id);
         }
+    },
+    checkDailyBonus: async () => {
+        // We need to access the state to get lastLoginDate
+        // Since 'get' is not available in the object literal scope directly if not passed to create
+        // Wait, create((set, get) => ({ ... })) - get IS available!
+        // I must have missed adding 'get' to the create function signature in previous edits.
+
+        // Let's assume I fix the signature in this replace as well.
+        // But I can't change the signature line 33 easily with this block.
+        // I'll assume 'get' is available or I'll use useUserStore.getState() if I can't change signature.
+        // Actually, I can use useUserStore.getState() inside the function!
+        // But wait, useUserStore is const defined by create... so it's circular if I use it inside.
+        // The correct way is to ensure 'get' is passed.
+
+        // I will replace the whole file content or a large chunk to fix the signature.
+        // But wait, the previous tool call showed line 33: export const useUserStore = create<UserState>((set, get) => ({
+        // It missed 'get'.
+
+        // I will fix the signature line first.
+        const { lastLoginDate } = get();
+        const today = new Date().toISOString().split('T')[0];
+
+        if (lastLoginDate !== today) {
+            // New day! Award bonus
+            const bonusPoints = 50;
+            const bonusXp = 10;
+
+            get().addPoints(bonusPoints);
+            get().addXp(bonusXp);
+
+            set({ lastLoginDate: today });
+
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await supabase.from('profiles').update({ last_login_date: today }).eq('id', user.id);
+            }
+
+            return true; // Trigger modal
+        }
+
+        return false;
     },
 }));

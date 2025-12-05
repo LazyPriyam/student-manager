@@ -22,6 +22,8 @@ interface HabitState {
     fetchHabits: () => Promise<void>;
     checkStreaks: () => void;
     resetData: () => Promise<void>;
+    checkStreakFreeze: () => Promise<string[]>;
+    applyStreakFreeze: (habitId: string) => Promise<void>;
 }
 
 import { supabase } from '@/lib/supabase/client';
@@ -181,6 +183,61 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         if (user) {
             await supabase.from('habits').delete().eq('user_id', user.id);
         }
+    },
+
+    checkStreakFreeze: async () => {
+        const { habits } = get();
+        const atRiskHabits: string[] = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        const dayBeforeYesterday = new Date(today);
+        dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
+        const dayBeforeYesterdayStr = dayBeforeYesterday.toISOString().split('T')[0];
+
+        habits.forEach(habit => {
+            const completedDates = new Set(habit.completedDates);
+            // Condition: Missed yesterday, but completed day before yesterday (was on a streak)
+            if (!completedDates.has(yesterdayStr) && completedDates.has(dayBeforeYesterdayStr)) {
+                atRiskHabits.push(habit.id);
+            }
+        });
+
+        return atRiskHabits;
+    },
+
+    applyStreakFreeze: async (habitId) => {
+        const { habits } = get();
+        const habit = habits.find(h => h.id === habitId);
+        if (!habit) return;
+
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        const newCompletedDates = [...habit.completedDates, yesterdayStr];
+        const newStreak = calculateStreak(newCompletedDates);
+
+        // Optimistic update
+        set({
+            habits: habits.map(h => h.id === habitId ? { ...h, completedDates: newCompletedDates, streak: newStreak } : h)
+        });
+
+        // DB Update
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase.from('habits').update({
+                completed_dates: newCompletedDates,
+                streak: newStreak
+            }).eq('id', habitId).eq('user_id', user.id);
+        }
+
+        // Consume Item
+        const { consumeItem } = require('./useShopStore').useShopStore.getState();
+        consumeItem('power-freeze');
     },
 }));
 

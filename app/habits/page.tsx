@@ -1,6 +1,7 @@
 'use client';
 
 import { HabitList } from '@/components/features/habits/HabitList';
+import { StreakRescueModal } from '@/components/features/habits/StreakRescueModal';
 import { useUserStore } from '@/lib/store/useUserStore';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
@@ -30,6 +31,7 @@ export default function HabitsPage() {
 
             <div className="flex-1">
                 <HabitList />
+                <StreakRescueModal />
             </div>
         </main>
     );
