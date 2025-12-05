@@ -29,6 +29,7 @@ interface TimerState {
     setDurations: (focus: number, shortBreak: number, longBreak: number) => void;
     advanceSession: () => void;
     logSession: (duration: number) => void;
+    logManualSession: (duration: number, date: string) => Promise<void>;
     syncWithSupabase: () => Promise<void>;
     resetData: () => Promise<void>;
 }
@@ -242,6 +243,41 @@ export const useTimerStore = create<TimerState>((set, get) => ({
                 user_id: user.id,
                 duration: duration,
                 completed_at: new Date().toISOString()
+            });
+        }
+    },
+
+    logManualSession: async (duration, date) => {
+        // 1. Update Local State
+        set((state) => {
+            const newHistory = [...state.history, { date: date, duration }];
+            const newTotal = state.totalFocusMinutes + duration;
+
+            const dailyTotals = newHistory.reduce((acc, session) => {
+                const d = session.date.split('T')[0];
+                acc[d] = (acc[d] || 0) + session.duration;
+                return acc;
+            }, {} as Record<string, number>);
+            const maxDaily = Math.max(0, ...Object.values(dailyTotals));
+
+            return {
+                history: newHistory,
+                totalFocusMinutes: newTotal,
+                maxDailyFocus: maxDaily
+            };
+        });
+
+        // 2. Award Reduced XP (1 XP per minute instead of 2)
+        const { addXp } = require('./useUserStore').useUserStore.getState();
+        addXp(duration * 1);
+
+        // 3. Sync to DB
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase.from('focus_sessions').insert({
+                user_id: user.id,
+                duration: duration,
+                completed_at: date
             });
         }
     },

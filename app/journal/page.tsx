@@ -13,14 +13,18 @@ const MOODS: { type: Mood; icon: any; label: string; color: string }[] = [
     { type: 'sad', icon: Frown, label: 'Sad', color: 'text-blue-500 bg-blue-100 dark:bg-blue-900/20' },
 ];
 
+import { ManualSessionModal } from '@/components/features/timer/ManualSessionModal';
+
 export default function JournalPage() {
     const { entries, addEntry, updateEntry, deleteEntry } = useJournalStore();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [selectedMood, setSelectedMood] = useState<Mood>('neutral');
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [isManualModalOpen, setIsManualModalOpen] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
+        // ... (existing submit logic)
         e.preventDefault();
         if (!title.trim() || !content.trim()) return;
 
@@ -36,6 +40,7 @@ export default function JournalPage() {
         setSelectedMood('neutral');
     };
 
+    // ... (existing edit handlers)
     const handleEdit = (entry: any) => {
         setEditingId(entry.id);
         setTitle(entry.title);
@@ -53,12 +58,21 @@ export default function JournalPage() {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-8 font-sans">
             <div className="max-w-4xl mx-auto">
-                <header className="mb-10">
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Daily Journal</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Reflect on your day and track your mood.</p>
+                <header className="mb-10 flex justify-between items-end">
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Daily Journal</h1>
+                        <p className="text-slate-500 dark:text-slate-400">Reflect on your day and track your mood.</p>
+                    </div>
+                    <button
+                        onClick={() => setIsManualModalOpen(true)}
+                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium flex items-center gap-1"
+                    >
+                        Forgot to Timer?
+                    </button>
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* ... (existing grid content) */}
                     {/* Entry Form */}
                     <div className="lg:col-span-1">
                         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sticky top-8">
@@ -189,6 +203,11 @@ export default function JournalPage() {
                         </AnimatePresence>
                     </div>
                 </div>
+
+                <ManualSessionModal
+                    isOpen={isManualModalOpen}
+                    onClose={() => setIsManualModalOpen(false)}
+                />
             </div>
         </div>
     );

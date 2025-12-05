@@ -85,6 +85,20 @@ export function Header() {
                 </Button>
             </Link>
 
+            <Link href="/analytics" className="w-full md:w-auto">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onMouseEnter={() => soundManager.playHover(activeSound)}
+                    className={`w-full justify-start md:justify-center ${pathname === '/analytics' ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
+                >
+                    <div className="w-4 h-4 mr-2 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-purple-500"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    </div>
+                    Analytics
+                </Button>
+            </Link>
+
             {user ? (
                 <>
                     <Link href="/profile" className="w-full md:w-auto">
