@@ -24,12 +24,14 @@ interface HabitState {
     resetData: () => Promise<void>;
     checkStreakFreeze: () => Promise<string[]>;
     applyStreakFreeze: (habitId: string) => Promise<void>;
+    isLoading: boolean;
 }
 
 import { supabase } from '@/lib/supabase/client';
 
 export const useHabitStore = create<HabitState>((set, get) => ({
     habits: [], // Start empty, fetch on load
+    isLoading: true,
 
     fetchHabits: async () => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -53,6 +55,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
                 }))
             });
         }
+        set({ isLoading: false });
     },
 
     addHabit: async (title, xpReward, startDate, endDate) => {

@@ -22,6 +22,7 @@ interface TaskState {
     completeTask: (id: string) => Promise<void>;
     history: { date: string; count: number }[];
     resetData: () => Promise<void>;
+    isLoading: boolean;
 }
 
 import { supabase } from '@/lib/supabase/client';
@@ -29,6 +30,7 @@ import { supabase } from '@/lib/supabase/client';
 export const useTaskStore = create<TaskState>((set, get) => ({
     tasks: [], // Start empty
     history: [],
+    isLoading: true,
 
     fetchTasks: async () => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -86,6 +88,8 @@ export const useTaskStore = create<TaskState>((set, get) => ({
             const history = Array.from(historyMap.entries()).map(([date, count]) => ({ date, count }));
             set({ history });
         }
+
+        set({ isLoading: false });
     },
 
     addTask: async (title, quadrant) => {

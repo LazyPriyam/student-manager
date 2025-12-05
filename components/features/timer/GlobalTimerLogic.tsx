@@ -11,6 +11,7 @@ import { soundManager } from '@/lib/sound';
 import { LevelUpModal } from '@/components/features/gamification/LevelUpModal';
 import { DailyBonusModal } from '@/components/features/gamification/DailyBonusModal';
 import { DayStartWizard } from '@/components/features/onboarding/DayStartWizard';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export function GlobalTimerLogic() {
     const {
@@ -19,6 +20,8 @@ export function GlobalTimerLogic() {
         setTimeLeft, setIsActive, setMode, advanceSession, logSession
     } = useTimerStore();
     const { addXp, activeSound, activeEffect, level, isInitialized } = useUserStore();
+    const isTaskLoading = useTaskStore(state => state.isLoading);
+    const isHabitLoading = useHabitStore(state => state.isLoading);
 
     const [showDailyBonus, setShowDailyBonus] = useState(false);
     const prevLevelRef = useRef<number | null>(null);
@@ -28,73 +31,7 @@ export function GlobalTimerLogic() {
         let interval: NodeJS.Timeout;
 
         if (isActive && startTime && timeLeft > 0) {
-            // Store the initial duration when the timer started (or resumed)
-            // We need to know what the total duration was supposed to be to calculate remaining
-            // But timeLeft in store is updated every second.
-            // Better approach: When starting, we have a target end time?
-            // Or simpler: We have startTime and initial timeLeft at that start.
-            // But we don't store "initialTimeLeftAtStart" in store.
-            // However, we update timeLeft in store.
-            // If we rely on store's timeLeft, it's fine as long as we don't drift.
-            // Wait, if we use Date.now(), we need a fixed reference point.
-            // The store updates startTime whenever setIsActive(true) is called.
-            // So we can calculate: elapsed = Date.now() - startTime.
-            // But we need to know what the timeLeft was *when* it started.
-            // We don't have that in the store currently.
-            // Actually, we can just use the previous timeLeft? No, that changes.
-            // Let's assume when we start/resume, we want to count down from the *current* timeLeft.
-            // So we need to capture the timeLeft at the moment the effect runs/starts?
-            // But this effect runs on every render/update.
-
-            // Let's try a different approach:
-            // We trust the store's timeLeft as the "truth" when the component mounts or isActive changes.
-            // But for the interval, we should use a local reference to avoid drift *during* this active session.
-
-            // Actually, the most robust way is:
-            // When setIsActive(true) is called, we save startTime AND duration (or targetEndTime).
-            // We have timer_duration in DB which is the remaining time when paused/started.
-            // So: remaining = timer_duration - (Date.now() - timer_start_time) / 1000.
-            // This matches exactly what we did in syncWithSupabase!
-
-            // We need to make sure we have the correct 'initial' duration for this session segment.
-            // In setIsActive, we save timer_duration = timeLeft.
-            // So yes: calculatedTimeLeft = storedTimeLeft - (Date.now() - startTime) / 1000.
-
-            // But we don't have "storedTimeLeft" in the state separate from "timeLeft".
-            // "timeLeft" IS the state that gets updated.
-            // If we use timeLeft in the calculation, it will feedback loop.
-
-            // Solution: We need to know the "duration to count down from".
-            // Let's use a local ref or just rely on the fact that syncWithSupabase sets it correctly?
-            // No, we need it live.
-
-            // Let's assume the store's timeLeft is correct when we START.
-            // But we need to persist "timeLeftAtStart" to calculate delta.
-            // We can't easily add that to store without migration.
-
-            // Alternative: Just use the standard drift-correction:
-            // expected = startTime + count * 1000
-            // delay = Date.now() - expected
-
-            // Or simpler:
-            // Just use the DB logic!
-            // We have startTime. We need the duration that was remaining when that startTime was set.
-            // We can fetch it? No, too slow.
-            // We can add `durationAtStart` to store?
-            // Or... we can just use the fact that we update timeLeft every second.
-            // If the browser throttles, we miss updates.
-            // When we wake up, we see Date.now() has jumped.
-            // We can just subtract the *actual elapsed time* since last tick?
-            // prevTime = Date.now()
-            // interval:
-            //   now = Date.now()
-            //   delta = (now - prevTime) / 1000
-            //   setTimeLeft(timeLeft - delta)
-            //   prevTime = now
-
-            // This handles throttling perfectly! If 10 seconds pass, delta is 10, we subtract 10.
-            // It doesn't require a fixed start time reference, just relative updates.
-
+            // ... (Timer logic remains same)
             let lastTick = Date.now();
 
             interval = setInterval(() => {
@@ -102,14 +39,6 @@ export function GlobalTimerLogic() {
                 const delta = (now - lastTick) / 1000;
 
                 if (delta >= 1) {
-                    // Only update if at least 1 second passed (avoid micro-updates)
-                    // Actually, we want to subtract the full float amount? 
-                    // No, timeLeft is integer seconds usually.
-                    // Let's round delta? Or just subtract 1 and handle drift?
-                    // If we just subtract 1, we are back to square one.
-                    // We must subtract Math.floor(delta) and keep the remainder?
-                    // Or just: setTimeLeft(timeLeft - Math.round(delta))
-
                     const secondsPassed = Math.round(delta);
                     if (secondsPassed > 0) {
                         setTimeLeft(Math.max(0, timeLeft - secondsPassed));
@@ -183,6 +112,12 @@ export function GlobalTimerLogic() {
 
         return () => clearInterval(interval);
     }, [isActive, timeLeft, mode, sessionPlan, focusDuration, breakDuration, setTimeLeft, setIsActive, setMode, addXp, advanceSession, logSession, activeSound, activeEffect, level, isInitialized]);
+
+    // Show loading screen if any store is loading
+    // We check !isInitialized for user store (which is effectively its loading state)
+    if (!isInitialized || isTaskLoading || isHabitLoading) {
+        return <LoadingScreen />;
+    }
 
     return (
         <>
